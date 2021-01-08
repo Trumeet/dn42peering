@@ -1,0 +1,10 @@
+[Unit]
+Description=dn42peering Agent
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/agent /etc/dn42peering/agent.json
+
+[Install]
+WantedBy=multi-user.target
