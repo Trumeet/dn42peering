@@ -41,6 +41,5 @@ jobs:
       - uses: ncipollo/release-action@v1.7.3
         with:
           allowUpdates: true
-          tag: "packages"
           artifacts: "./agent/build/distributions/agent-*.tar"
           token: ${{ secrets.GITHUB_TOKEN }}
