@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "moe.yuuta.dn42peering.agent.proto";
+option java_outer_classname = "AgentProto";
+package moe.yuuta.dn42peering.agent;
+
+service Agent {
+ rpc ProvisionBGP (BGPRequest) returns (BGPReply) {}
+ rpc ReloadBGP (BGPRequest) returns (BGPReply) {}
+ rpc DeleteBGP (BGPRequest) returns (BGPReply) {}
+
+ rpc ProvisionWG (WGRequest) returns (WGReply) {}
+ rpc ReloadWG (WGRequest) returns (WGReply) {}
+ rpc DeleteWG (WGRequest) returns (WGReply) {}
+}
+
+message BGPRequest {
+ Node node = 1;
+ uint64 id = 2;
+ string asn = 3;
+ bool mpbgp = 4;
+ string ipv4 = 5;
+ string ipv6 = 6;
+ string device = 7;
+}
+
+message BGPReply {
+}
+
+message WGRequest {
+ Node node = 1;
+ uint64 id = 2;
+ uint32 listenPort = 3;
+ string endpoint = 4;
+ string peerPubKey = 5;
+ string selfPrivKey = 6;
+ string selfPresharedSecret = 7;
+ string peerIPv4 = 8;
+ string peerIPv6 = 9;
+}
+
+message WGReply {
+ string device = 1;
+}
+
+message Node {
+ uint64 id = 1;
+ string ipv4 = 2;
+ string ipv6 = 3;
+}

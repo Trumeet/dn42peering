@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group 'moe.yuuta'
+version '1.0'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+application {
+    getMainClass().set('moe.yuuta.dn42peering.Main')
+}
+
+dependencies {
+    compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
+    implementation 'org.apache.commons:commons-text:1.9'
+    implementation 'commons-net:commons-net:3.7.2'
+
+    implementation 'commons-validator:commons-validator:1.7'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+
+    implementation "io.vertx:vertx-core:${project.vertxVersion}"
+    implementation "io.vertx:vertx-web:${project.vertxVersion}"
+    implementation "io.vertx:vertx-web-templ-freemarker:${project.vertxVersion}"
+    implementation "io.vertx:vertx-web-validation:${project.vertxVersion}"
+    implementation "io.vertx:vertx-auth-common:${project.vertxVersion}"
+    implementation "io.vertx:vertx-mysql-client:${project.vertxVersion}"
+    implementation "io.vertx:vertx-mail-client:${project.vertxVersion}"
+    implementation "io.vertx:vertx-service-proxy:${project.vertxVersion}"
+    implementation "io.vertx:vertx-sql-client-templates:${project.vertxVersion}"
+    implementation "io.vertx:vertx-config:${project.vertxVersion}"
+    annotationProcessor "io.vertx:vertx-sql-client-templates:${project.vertxVersion}"
+    annotationProcessor "io.vertx:vertx-codegen:${project.vertxVersion}:processor"
+    annotationProcessor "io.vertx:vertx-service-proxy:${project.vertxVersion}"
+    compileOnly "io.vertx:vertx-codegen:${project.vertxVersion}"
+    implementation "io.vertx:vertx-grpc:${project.vertxVersion}"
+
+    implementation project(':rpc-common')
+}
+
+test {
+    useJUnitPlatform()
+}

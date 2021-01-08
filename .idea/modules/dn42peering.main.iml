@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module external.system.module.type="sourceSet" type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <output url="file://$MODULE_DIR$/../../build/classes/java/main" />
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/../../build/generated/sources/annotationProcessor/java/main">
+      <sourceFolder url="file://$MODULE_DIR$/../../build/generated/sources/annotationProcessor/java/main" isTestSource="false" generated="true" />
+    </content>
+    <content url="file://$MODULE_DIR$/../../central/src/main">
+      <sourceFolder url="file://$MODULE_DIR$/../../central/src/main/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../central/src/main/resources" type="java-resource" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" scope="PROVIDED" name="Gradle: com.google.code.findbugs:jsr305:3.0.2" level="project" />
+    <orderEntry type="library" name="Gradle: commons-validator:commons-validator:1.7" level="project" />
+    <orderEntry type="library" name="Gradle: commons-logging:commons-logging:1.2" level="project" />
+    <orderEntry type="library" name="Gradle: io.vertx:vertx-service-proxy:4.0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Gradle: io.vertx:vertx-auth-common:4.0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Gradle: io.netty:netty-buffer:4.1.49.Final" level="project" />
+    <orderEntry type="library" name="Gradle: com.fasterxml.jackson.core:jackson-core:2.11.3" level="project" />
+    <orderEntry type="library" name="Gradle: io.vertx:vertx-bridge-common:4.0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Gradle: commons-beanutils:commons-beanutils:1.9.4" level="project" />
+    <orderEntry type="library" name="Gradle: org.apache.commons:commons-lang3:3.11" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Gradle: io.vertx:vertx-codegen:4.0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Gradle: io.vertx:vertx-mail-client:4.0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Gradle: io.netty:netty-codec-http:4.1.49.Final" level="project" />
+    <orderEntry type="library" name="Gradle: io.vertx:vertx-sql-client:4.0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Gradle: commons-digester:commons-digester:2.1" level="project" />
+    <orderEntry type="library" name="Gradle: io.vertx:vertx-web-validation:4.0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Gradle: io.vertx:vertx-web:4.0.1-SNAPSHOT" level="project" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Gradle: org.apache.commons:commons-text:1.9" level="project" />
+    <orderEntry type="library" name="Gradle: commons-net:commons-net:3.7.2" level="project" />
+    <orderEntry type="library" name="Gradle: io.vertx:vertx-web-templ-freemarker:4.0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Gradle: io.vertx:vertx-mysql-client:4.0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Gradle: io.vertx:vertx-sql-client-templates:4.0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Gradle: io.vertx:vertx-core:4.0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Gradle: commons-collections:commons-collections:3.2.2" level="project" />
+    <orderEntry type="library" name="Gradle: io.vertx:vertx-json-schema:4.0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Gradle: io.vertx:vertx-web-common:4.0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Gradle: org.freemarker:freemarker:2.3.29" level="project" />
+    <orderEntry type="library" name="Gradle: io.netty:netty-handler-proxy:4.1.49.Final" level="project" />
+    <orderEntry type="library" name="Gradle: io.netty:netty-codec-http2:4.1.49.Final" level="project" />
+    <orderEntry type="library" name="Gradle: io.netty:netty-handler:4.1.49.Final" level="project" />
+    <orderEntry type="library" name="Gradle: io.netty:netty-resolver-dns:4.1.49.Final" level="project" />
+    <orderEntry type="library" name="Gradle: io.netty:netty-transport:4.1.49.Final" level="project" />
+    <orderEntry type="library" name="Gradle: io.netty:netty-resolver:4.1.49.Final" level="project" />
+    <orderEntry type="library" name="Gradle: io.netty:netty-common:4.1.49.Final" level="project" />
+    <orderEntry type="library" name="Gradle: io.netty:netty-codec-socks:4.1.49.Final" level="project" />
+    <orderEntry type="library" name="Gradle: io.netty:netty-codec:4.1.49.Final" level="project" />
+    <orderEntry type="library" name="Gradle: io.netty:netty-codec-dns:4.1.49.Final" level="project" />
+  </component>
+</module>
