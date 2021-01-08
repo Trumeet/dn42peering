@@ -16,5 +16,7 @@ Table = off
 [Peer]
 PublicKey = ${peer_pub_key}
 PresharedKey = ${preshared_key}
+<#if endpoint??>
 Endpoint = ${endpoint}
+</#if>
 AllowedIPs = 0.0.0.0/0, ::/0
