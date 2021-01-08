@@ -14,7 +14,7 @@ import java.io.InputStream;
 public class Main {
     public static void main(@Nonnull String... args) throws Throwable {
         if(args.length != 1) {
-            System.err.println("Usage: central <path/to/config.json>");
+            System.err.println("Usage: agent <path/to/config.json>");
             System.exit(64);
             return;
         }
