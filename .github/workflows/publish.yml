@@ -34,8 +34,8 @@ jobs:
       - name: makepkg
         uses: py7hon/arch-makepkg@v0.0.2
       - uses: ncipollo/release-action@v1.7.3
-          with:
-            allowUpdates: true
-            tag: "packages"
-            artifacts: "./*/agent-*.zst"
-            token: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          allowUpdates: true
+          tag: "packages"
+          artifacts: "./*/agent-*.zst"
+          token: ${{ secrets.GITHUB_TOKEN }}
