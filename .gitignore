@@ -1,9 +1,3 @@
-# Agent packaging
-/pkg/
-/src/
-/*.zst
-
-# Gradle
 .gradle
 **/build/
 !src/**/build/
