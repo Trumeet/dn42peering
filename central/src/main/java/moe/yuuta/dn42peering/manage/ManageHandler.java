@@ -685,7 +685,7 @@ public class ManageHandler implements ISubRouter {
                             }
                         }
 
-                        int wgEndpointPort = -1;
+                        Integer wgEndpointPort = null;
                         if (form.containsKey("wg_endpoint_port")) {
                             if (type == Peer.VPNType.WIREGUARD) {
                                 final String rawPort = form.getString("wg_endpoint_port");
@@ -818,8 +818,7 @@ public class ManageHandler implements ISubRouter {
                                 break;
                         }
                         root.put("wgEndpoint", peer.getWgEndpoint());
-                        if(peer.getWgEndpointPort() != -1)
-                            root.put("wgEndpointPort", peer.getWgEndpointPort());
+                        root.put("wgEndpointPort", peer.getWgEndpointPort());
                         root.put("wgPubkey", peer.getWgPeerPubkey());
                         root.put("mpbgp", peer.isMpbgp());
                         root.put("node_checked", peer.getNode());

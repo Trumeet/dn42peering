@@ -52,7 +52,7 @@ public class Peer {
 
     @Column(name = "wg_endpoint_port")
     @TemplateParameter(name = "wg_endpoint_port")
-    private int wgEndpointPort;
+    private Integer wgEndpointPort;
 
     @Column(name = "wg_self_pubkey")
     @TemplateParameter(name = "wg_self_pubkey")
@@ -90,7 +90,7 @@ public class Peer {
                 String ipv4,
                 String ipv6,
                 String wgEndpoint,
-                int wgEndpointPort,
+                Integer wgEndpointPort,
                 String wgSelfPubkey,
                 String wgSelfPrivKey,
                 String wgPeerPubkey,
@@ -139,7 +139,7 @@ public class Peer {
     public Peer(String ipv4,
                 String ipv6,
                 String wgEndpoint,
-                int wgEndpointPort,
+                Integer wgEndpointPort,
                 String wgPeerPubkey,
                 boolean mpbgp,
                 int node) {
@@ -197,7 +197,7 @@ public class Peer {
         return WGRequest.newBuilder()
                 .setId(getId())
                 .setListenPort(Integer.parseInt(calcWireGuardPort()))
-                .setEndpoint(getWgEndpoint() == null ? "" : String.format("%s:%d", getWgEndpoint(), getWgEndpointPort()))
+                .setEndpoint(getWgEndpoint() == null && getWgEndpointPort() == null ? "" : String.format("%s:%d", getWgEndpoint(), getWgEndpointPort()))
                 .setPeerPubKey(getWgPeerPubkey())
                 .setSelfPrivKey(getWgSelfPrivKey())
                 .setSelfPresharedSecret(getWgPresharedSecret())
@@ -265,11 +265,11 @@ public class Peer {
         this.wgEndpoint = wgEndpoint;
     }
 
-    public int getWgEndpointPort() {
+    public Integer getWgEndpointPort() {
         return wgEndpointPort;
     }
 
-    public void setWgEndpointPort(int wgEndpointPort) {
+    public void setWgEndpointPort(Integer wgEndpointPort) {
         this.wgEndpointPort = wgEndpointPort;
     }
 
