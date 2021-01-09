@@ -695,7 +695,7 @@ public class ManageHandler implements ISubRouter {
                                         errors.add("WireGuard EndPoint port is not valid. It must be a number.");
                                     }
                                 } else {
-                                    errors.add("WireGuard EndPoint IP is not specified, but port is specified.");
+                                    errors.add("WireGuard EndPoint IP is not specified or invalid, but port is specified.");
                                 }
                             } else {
                                 errors.add("WireGuard tunneling is not selected but WireGuard Endpoint configuration appears.");
