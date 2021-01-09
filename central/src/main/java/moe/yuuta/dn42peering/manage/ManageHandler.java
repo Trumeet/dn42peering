@@ -663,9 +663,7 @@ public class ManageHandler implements ISubRouter {
                         if (form.containsKey("wg_endpoint")) {
                             if (type == Peer.VPNType.WIREGUARD) {
                                 wgEndpoint = form.getString("wg_endpoint");
-                                if (wgEndpoint == null || wgEndpoint.isEmpty()) {
-                                    errors.add("WireGuard tunneling is not selected but WireGuard Endpoint configuration appears.");
-                                } else {
+                                if (wgEndpoint != null && !wgEndpoint.isEmpty()) {
                                     if (InetAddressValidator.getInstance().isValidInet4Address(wgEndpoint)) {
                                         if (new CIDRUtils("10.0.0.0/8").isInRange(wgEndpoint) ||
                                                 new CIDRUtils("192.168.0.0/16").isInRange(wgEndpoint) ||
