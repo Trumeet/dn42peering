@@ -197,7 +197,7 @@ public class Peer {
         return WGRequest.newBuilder()
                 .setId(getId())
                 .setListenPort(Integer.parseInt(calcWireGuardPort()))
-                .setEndpoint(getWgEndpoint() == null ? "" : String.format("%s:%d", getWgEndpoint(), getWgEndpointPort()))
+                .setEndpoint(String.format("%s:%d", getWgEndpoint(), getWgEndpointPort()))
                 .setPeerPubKey(getWgPeerPubkey())
                 .setSelfPrivKey(getWgSelfPrivKey())
                 .setSelfPresharedSecret(getWgPresharedSecret())
