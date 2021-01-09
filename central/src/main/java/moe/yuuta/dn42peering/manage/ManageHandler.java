@@ -367,11 +367,19 @@ public class ManageHandler implements ISubRouter {
                                 if (err instanceof HTTPException) {
                                     ctx.response().setStatusCode(((HTTPException) err).code).end();
                                 } else if (err instanceof FormException) {
+                                    final Peer peer = (Peer) ((FormException) err).data;
+                                    if(peer != null) {
+                                        // The exception may be generated from parseForm
+                                        // In this case, the peer contains default data (like ID, keys, asn)
+                                        // ID is the most important one since it determines the action of the form
+                                        // so we need to manually ensure it here.
+                                        peer.setId(Integer.parseInt(id)); // It must work.
+                                    }
                                     renderForm(engine,
                                             nodeService,
                                             false,
                                             asn,
-                                            (Peer) ((FormException) err).data,
+                                            peer,
                                             Arrays.asList(((FormException) err).errors),
                                             res -> {
                                                 if (res.succeeded()) {
