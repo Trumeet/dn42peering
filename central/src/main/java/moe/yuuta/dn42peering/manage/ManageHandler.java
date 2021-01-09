@@ -707,6 +707,13 @@ public class ManageHandler implements ISubRouter {
                             }
                         }
 
+                        // When user specified the endpoint without the port.
+                        if(type == Peer.VPNType.WIREGUARD &&
+                                wgEndpointCorrect &&
+                                wgEndpointPort == null) {
+                            errors.add("WireGuard EndPoint IP is specified, but the port is missing.");
+                        }
+
                         String wgPubKey = null;
                         if (form.containsKey("wg_pubkey")) {
                             if (type == Peer.VPNType.WIREGUARD) {
