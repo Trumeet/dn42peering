@@ -24,6 +24,8 @@ jobs:
           allowUpdates: true
           artifacts: "./central/build/distributions/central-*.tar"
           token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
+          replacesArtifacts: false
   build_agent: 
     runs-on: ubuntu-latest
     steps:
@@ -41,3 +43,5 @@ jobs:
           allowUpdates: true
           artifacts: "./agent/build/distributions/agent-*.tar"
           token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
+          replacesArtifacts: false
