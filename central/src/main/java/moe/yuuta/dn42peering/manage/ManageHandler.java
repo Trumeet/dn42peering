@@ -683,17 +683,20 @@ public class ManageHandler implements ISubRouter {
                         int wgEndpointPort = -1;
                         if (form.containsKey("wg_endpoint_port")) {
                             if (type == Peer.VPNType.WIREGUARD) {
-                                if (wgEndpointCorrect) {
-                                    try {
-                                        wgEndpointPort = Integer.parseInt(form.getString("wg_endpoint_port"));
-                                        if (wgEndpointPort < 0 || wgEndpointPort > 65535) {
-                                            errors.add("WireGuard EndPoint port must be in UDP port range.");
+                                final String rawPort = form.getString("wg_endpoint_port");
+                                if(rawPort != null && !rawPort.isEmpty()) {
+                                    if (wgEndpointCorrect) {
+                                        try {
+                                            wgEndpointPort = Integer.parseInt(rawPort);
+                                            if (wgEndpointPort < 0 || wgEndpointPort > 65535) {
+                                                errors.add("WireGuard EndPoint port must be in UDP port range.");
+                                            }
+                                        } catch (NumberFormatException | NullPointerException ignored) {
+                                            errors.add("WireGuard EndPoint port is not valid. It must be a number.");
                                         }
-                                    } catch (NumberFormatException | NullPointerException ignored) {
-                                        errors.add("WireGuard EndPoint port is not valid. It must be a number.");
+                                    } else {
+                                        errors.add("WireGuard EndPoint IP is not specified or invalid, but port is specified.");
                                     }
-                                } else {
-                                    errors.add("WireGuard EndPoint IP is not specified or invalid, but port is specified.");
                                 }
                             } else {
                                 errors.add("WireGuard tunneling is not selected but WireGuard Endpoint configuration appears.");
