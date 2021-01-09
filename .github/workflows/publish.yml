@@ -15,8 +15,10 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
+      - name: Generate tag
+        run: echo "CUSTOM_BUILD=${GITHUB_REF##*/}" >> $GITHUB_ENV
       - name: Build
-        run: ./gradlew :central:distTar
+        run: ./gradlew -Pbuild_ver=$CUSTOM_BUILD :central:distTar
       - uses: ncipollo/release-action@v1.7.3
         with:
           allowUpdates: true
@@ -30,8 +32,10 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
+      - name: Generate tag
+        run: echo "CUSTOM_BUILD=${GITHUB_REF##*/}" >> $GITHUB_ENV
       - name: Build
-        run: ./gradlew :agent:distTar
+        run: ./gradlew -Pbuild_ver=$CUSTOM_BUILD :agent:distTar
       - uses: ncipollo/release-action@v1.7.3
         with:
           allowUpdates: true

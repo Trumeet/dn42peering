@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'moe.yuuta'
-version '1.0'
+version project.ver
 
 def protocVersion = protobufVersion
 
