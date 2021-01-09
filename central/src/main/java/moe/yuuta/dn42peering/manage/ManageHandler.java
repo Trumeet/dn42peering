@@ -620,15 +620,13 @@ public class ManageHandler implements ISubRouter {
 
                         String ipv4 = null;
                         if (form.containsKey("ipv4")) {
-                            final String preIpv4 = form.getString("ipv4");
-                            if (preIpv4 == null || preIpv4.isEmpty()) {
+                            ipv4 = form.getString("ipv4");
+                            if (ipv4 == null || ipv4.isEmpty()) {
                                 errors.add("IPv4 address is not specified.");
                             } else {
-                                if (InetAddressValidator.getInstance().isValidInet4Address(preIpv4)) {
-                                    if (!new CIDRUtils("172.20.0.0/14").isInRange(preIpv4)) {
+                                if (InetAddressValidator.getInstance().isValidInet4Address(ipv4)) {
+                                    if (!new CIDRUtils("172.20.0.0/14").isInRange(ipv4)) {
                                         errors.add("IPv4 address is illegal. It must be a dn42 IPv4 address (172.20.x.x to 172.23.x.x).");
-                                    } else {
-                                        ipv4 = preIpv4;
                                     }
                                 } else
                                     errors.add("IPv4 address is illegal. Cannot parse your address.");
@@ -639,14 +637,12 @@ public class ManageHandler implements ISubRouter {
 
                         String ipv6 = null;
                         if (form.containsKey("ipv6")) {
-                            final String preIpv6 = form.getString("ipv6");
-                            if (preIpv6 != null && !preIpv6.isEmpty()) {
-                                if (InetAddressValidator.getInstance().isValidInet6Address(preIpv6)) {
-                                    if (!new CIDRUtils("fd00::/8").isInRange(preIpv6) &&
-                                            !Inet6Address.getByName(preIpv6).isLinkLocalAddress()) {
+                            ipv6 = form.getString("ipv6");
+                            if (ipv6 != null && !ipv6.isEmpty()) {
+                                if (InetAddressValidator.getInstance().isValidInet6Address(ipv6)) {
+                                    if (!new CIDRUtils("fd00::/8").isInRange(ipv6) &&
+                                            !Inet6Address.getByName(ipv6).isLinkLocalAddress()) {
                                         errors.add("IPv6 address is illegal. It must be a dn42 or link-local IPv6 address.");
-                                    } else {
-                                        ipv6 = preIpv6;
                                     }
                                 } else
                                     errors.add("IPv6 address is illegal. Cannot parse your address.");
@@ -666,17 +662,16 @@ public class ManageHandler implements ISubRouter {
                         boolean wgEndpointCorrect = false;
                         if (form.containsKey("wg_endpoint")) {
                             if (type == Peer.VPNType.WIREGUARD) {
-                                final String preIpv4 = form.getString("wg_endpoint");
-                                if (preIpv4 == null || preIpv4.isEmpty()) {
+                                wgEndpoint = form.getString("wg_endpoint");
+                                if (wgEndpoint == null || wgEndpoint.isEmpty()) {
                                     errors.add("WireGuard tunneling is not selected but WireGuard Endpoint configuration appears.");
                                 } else {
-                                    if (InetAddressValidator.getInstance().isValidInet4Address(preIpv4)) {
-                                        if (new CIDRUtils("10.0.0.0/8").isInRange(preIpv4) ||
-                                                new CIDRUtils("192.168.0.0/16").isInRange(preIpv4) ||
-                                                new CIDRUtils("172.16.0.0/23").isInRange(preIpv4)) {
+                                    if (InetAddressValidator.getInstance().isValidInet4Address(wgEndpoint)) {
+                                        if (new CIDRUtils("10.0.0.0/8").isInRange(wgEndpoint) ||
+                                                new CIDRUtils("192.168.0.0/16").isInRange(wgEndpoint) ||
+                                                new CIDRUtils("172.16.0.0/23").isInRange(wgEndpoint)) {
                                             errors.add("WireGuard EndPoint is illegal. It must not be an internal address.");
                                         } else {
-                                            wgEndpoint = preIpv4;
                                             wgEndpointCorrect = true;
                                         }
                                     } else
@@ -695,7 +690,6 @@ public class ManageHandler implements ISubRouter {
                                         wgEndpointPort = Integer.parseInt(form.getString("wg_endpoint_port"));
                                         if (wgEndpointPort < 0 || wgEndpointPort > 65535) {
                                             errors.add("WireGuard EndPoint port must be in UDP port range.");
-                                            wgEndpointPort = -1;
                                         }
                                     } catch (NumberFormatException | NullPointerException ignored) {
                                         errors.add("WireGuard EndPoint port is not valid. It must be a number.");
@@ -719,7 +713,6 @@ public class ManageHandler implements ISubRouter {
                                         Key.fromBase64(wgPubKey);
                                     } catch (KeyFormatException e) {
                                         errors.add("WireGuard public key is not valid.");
-                                        wgPubKey = null;
                                     }
                                 }
                             } else {
