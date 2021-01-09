@@ -623,6 +623,7 @@ public class ManageHandler implements ISubRouter {
                             ipv4 = form.getString("ipv4");
                             if (ipv4 == null || ipv4.isEmpty()) {
                                 errors.add("IPv4 address is not specified.");
+                                ipv4 = null; // Non-null but empty values could cause problems.
                             } else {
                                 if (InetAddressValidator.getInstance().isValidInet4Address(ipv4)) {
                                     if (!new CIDRUtils("172.20.0.0/14").isInRange(ipv4)) {
@@ -646,6 +647,8 @@ public class ManageHandler implements ISubRouter {
                                     }
                                 } else
                                     errors.add("IPv6 address is illegal. Cannot parse your address.");
+                            } else {
+                                ipv6 = null; // Non-null but empty values could cause problems.
                             }
                         }
 
@@ -674,6 +677,8 @@ public class ManageHandler implements ISubRouter {
                                         }
                                     } else
                                         errors.add("WireGuard EndPoint is illegal. Cannot parse your address.");
+                                } else {
+                                    wgEndpoint = null; // Non-null but empty values could cause problems.
                                 }
                             } else {
                                 errors.add("WireGuard tunneling is not selected but WireGuard Endpoint configuration appears.");
@@ -709,6 +714,7 @@ public class ManageHandler implements ISubRouter {
                                 wgPubKey = form.getString("wg_pubkey");
                                 if (wgPubKey == null || wgPubKey.isEmpty()) {
                                     errors.add("WireGuard public key is not specified.");
+                                    wgPubKey = null; // Non-null but empty values could cause problems.
                                 } else {
                                     try {
                                         Key.fromBase64(wgPubKey);
