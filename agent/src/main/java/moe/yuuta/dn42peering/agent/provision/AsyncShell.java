@@ -7,6 +7,7 @@ import io.vertx.core.Vertx;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class AsyncShell {
     @Nonnull
@@ -38,7 +39,8 @@ public class AsyncShell {
         return Future.future(f -> exec(vertx, cmd)
                 .onSuccess(res -> {
                     if(res != 0) {
-                        f.fail(String.format("Unexpected return code %d", res));
+                        f.fail(String.format("Unexpected return code %d while running %s", res,
+                                Arrays.asList(cmd)));
                     } else {
                         f.complete(null);
                     }
