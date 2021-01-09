@@ -118,7 +118,10 @@ class ASNServiceImpl implements IASNService {
                         return Future.succeededFuture(Collections.<String>emptyList());
                     } else {
                         final List<String> verifyMethodList = new ArrayList<>(3);
-                        verifyMethodList.addAll(Stream.of(techLookup.getOrDefault("contact", Collections.emptyList()))
+                        final List<String> contacts = new ArrayList<>();
+                        contacts.addAll(techLookup.getOrDefault("contact", Collections.emptyList()));
+                        contacts.addAll(techLookup.getOrDefault("e-mail", Collections.emptyList()));
+                        verifyMethodList.addAll(Stream.of(contacts)
                                 .flatMap(Collection::stream)
                                 .map(contact -> {
                                     final Matcher m =
