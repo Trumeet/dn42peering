@@ -811,7 +811,8 @@ public class ManageHandler implements ISubRouter {
                                 break;
                         }
                         root.put("wgEndpoint", peer.getWgEndpoint());
-                        root.put("wgEndpointPort", peer.getWgEndpointPort());
+                        if(peer.getWgEndpointPort() != -1)
+                            root.put("wgEndpointPort", peer.getWgEndpointPort());
                         root.put("wgPubkey", peer.getWgPeerPubkey());
                         root.put("mpbgp", peer.isMpbgp());
                         root.put("node_checked", peer.getNode());
