@@ -17,10 +17,6 @@
     <li>We: Constantly check your connection.</li>
     <li>If you decided to stop peering with us, just login and delete your connection. We will stop connecting with you. The whole process is automated.</li>
 </ol>
-<h2>Special Notices (Please read)</h2>
-<ul>
-    <li>Accounts are not shared across our endpoints.</li>
-</ul>
 <h2>Start peering today!</h2>
 <ol>
     <li>Register your ASN <a href="/asn">Here</a>.</li>

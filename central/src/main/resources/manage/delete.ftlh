@@ -18,7 +18,7 @@
 </div>
 </#if>
 <form action="/manage/delete-account" method="post">
-    <label for="submit">Are you sure to delete your account? This will delete the ASN record on this node.</label><br />
+    <label for="submit">Are you sure to delete your account?</label><br />
     <input type="submit" id="submit">
 </form>
 </body>
