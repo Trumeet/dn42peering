@@ -58,7 +58,6 @@ public class ManageHandler implements ISubRouter {
 
     @Nonnull
     @Override
-    @SuppressWarnings("unchecked")
     public Router mount(@Nonnull Vertx vertx) {
         final IASNService asnService = IASNService.createProxy(vertx, IASNService.ADDRESS);
         final IWhoisService whoisService = IWhoisService.createProxy(vertx, IWhoisService.ADDRESS);
@@ -339,7 +338,7 @@ public class ManageHandler implements ISubRouter {
                                         ar -> {
                                             if (ar.succeeded()) {
                                                 if (ar.result()) {
-                                                    f.fail(new FormException(peer,
+                                                    f.fail(new FormException(inPeer,
                                                             "The IPv4 or IPv6 you specified conflicts with an existing peering with the same type."));
                                                 } else {
                                                     f.complete(peer);
@@ -372,7 +371,7 @@ public class ManageHandler implements ISubRouter {
                                             nodeService,
                                             false,
                                             asn,
-                                            (((Pair<Peer, Peer>) ((FormException) err).data).b),
+                                            (Peer) ((FormException) err).data,
                                             Arrays.asList(((FormException) err).errors),
                                             res -> {
                                                 if (res.succeeded()) {
