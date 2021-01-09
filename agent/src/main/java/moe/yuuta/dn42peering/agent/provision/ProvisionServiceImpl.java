@@ -137,7 +137,11 @@ class ProvisionServiceImpl implements IProvisionService {
 
     @Nonnull
     private Future<Void> deleteBGPConfig(int id) {
-        return vertx.fileSystem().delete(generateBGPPath(id));
+        return vertx.fileSystem().exists(generateBGPPath(id))
+                .compose(exists -> {
+                    if (exists) return vertx.fileSystem().delete(generateBGPPath(id));
+                    else return Future.succeededFuture(null);
+                });
     }
 
     @Nonnull
