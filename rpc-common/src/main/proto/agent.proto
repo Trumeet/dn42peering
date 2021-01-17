@@ -48,4 +48,5 @@ message Node {
  uint64 id = 1;
  string ipv4 = 2;
  string ipv6 = 3;
+ string ipv6NonLL = 4;
 }

@@ -25,6 +25,7 @@ class AgentServiceImpl extends VertxAgentGrpc.AgentVertxImplBase {
         return Future.<Void>future(f -> provisionService.provisionBGP(
                 request.getNode().getIpv4(),
                 request.getNode().getIpv6(),
+                request.getNode().getIpv6NonLL(),
                 (int)request.getId(),
                 request.getIpv4(),
                 request.getIpv6().isEmpty() ? null : request.getIpv6(),
@@ -42,6 +43,7 @@ class AgentServiceImpl extends VertxAgentGrpc.AgentVertxImplBase {
         return Future.<Void>future(f -> provisionService.reloadBGP(
                 request.getNode().getIpv4(),
                 request.getNode().getIpv6(),
+                request.getNode().getIpv6NonLL(),
                 (int)request.getId(),
                 request.getIpv4(),
                 request.getIpv6().isEmpty() ? null : request.getIpv6(),
@@ -67,6 +69,7 @@ class AgentServiceImpl extends VertxAgentGrpc.AgentVertxImplBase {
         return Future.<String>future(f -> provisionService.provisionVPNWireGuard(
                 request.getNode().getIpv4(),
                 request.getNode().getIpv6(),
+                request.getNode().getIpv6NonLL(),
                 (int)request.getId(),
                 request.getListenPort(),
                 request.getEndpoint().isEmpty() ? "" : request.getEndpoint(),
@@ -87,6 +90,7 @@ class AgentServiceImpl extends VertxAgentGrpc.AgentVertxImplBase {
         return Future.<String>future(f -> provisionService.reloadVPNWireGuard(
                 request.getNode().getIpv4(),
                 request.getNode().getIpv6(),
+                request.getNode().getIpv6NonLL(),
                 (int)request.getId(),
                 request.getListenPort(),
                 request.getEndpoint().isEmpty() ? "" : request.getEndpoint(),

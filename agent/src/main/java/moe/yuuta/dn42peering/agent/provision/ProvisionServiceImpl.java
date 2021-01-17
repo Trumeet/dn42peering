@@ -56,6 +56,7 @@ class ProvisionServiceImpl implements IProvisionService {
     @Nonnull
     private Future<Void> writeBGPConfig(@Nonnull String localIP4,
                                         @Nonnull String localIP6,
+                                        @Nonnull String localIP6NonLL,
                                         int id,
                                         @Nonnull String ipv4,
                                         @Nullable String ipv6,
@@ -96,6 +97,7 @@ class ProvisionServiceImpl implements IProvisionService {
     private Future<Void> writeWGConfig(boolean create,
                                        @Nonnull String localIP4,
                                        @Nonnull String localIP6,
+                                       @Nonnull String localIP6NonLL,
                                        @Nonnull String dev,
                                        int listenPort,
                                        @Nullable String endpointWithPort,
@@ -118,12 +120,16 @@ class ProvisionServiceImpl implements IProvisionService {
                     params.put("peer_ipv6", peerIPv6);
                     if (peerIPv6 != null) {
                         try {
-                            params.put("peer_ipv6_ll", Inet6Address.getByName(peerIPv6).isLinkLocalAddress());
+                            final boolean ll = Inet6Address.getByName(peerIPv6).isLinkLocalAddress();
+                            params.put("peer_ipv6_ll", ll);
+                            if(ll)
+                                params.put("self_ipv6", localIP6);
+                            else
+                                params.put("self_ipv6", localIP6NonLL);
                         } catch (IOException e) {
                             return Future.failedFuture(e);
                         }
                     }
-                    params.put("self_ipv6", localIP6);
                     params.put("preshared_key", selfPresharedSecret);
                     params.put("endpoint", endpointWithPort);
                     params.put("peer_pub_key", peerPubKey);
@@ -153,6 +159,7 @@ class ProvisionServiceImpl implements IProvisionService {
     @Override
     public IProvisionService provisionBGP(@Nonnull String localIP4,
                                           @Nonnull String localIP6,
+                                          @Nonnull String localIP6NonLL,
                                           int id,
                                           @Nonnull String ipv4,
                                           @Nullable String ipv6,
@@ -162,7 +169,7 @@ class ProvisionServiceImpl implements IProvisionService {
                                           @Nonnull Handler<AsyncResult<Void>> handler) {
         vertx.sharedData().getLocalLockWithTimeout(getLockNameForBGP(id), 1000)
                 .compose(lock ->
-                        writeBGPConfig(localIP4, localIP6, id, ipv4, ipv6, device, mpbgp, asn, true)
+                        writeBGPConfig(localIP4, localIP6, localIP6NonLL, id, ipv4, ipv6, device, mpbgp, asn, true)
                                 .compose(_v -> AsyncShell.execSucc(vertx, "birdc", "configure"))
                                 .onComplete(ar -> lock.release())
                 )
@@ -174,6 +181,7 @@ class ProvisionServiceImpl implements IProvisionService {
     @Override
     public IProvisionService reloadBGP(@Nonnull String localIP4,
                                        @Nonnull String localIP6,
+                                       @Nonnull String localIP6NonLL,
                                        int id,
                                        @Nonnull String ipv4,
                                        @Nullable String ipv6,
@@ -183,7 +191,7 @@ class ProvisionServiceImpl implements IProvisionService {
                                        @Nonnull Handler<AsyncResult<Void>> handler) {
         vertx.sharedData().getLocalLockWithTimeout(getLockNameForBGP(id), 1000)
                 .compose(lock ->
-                        writeBGPConfig(localIP4, localIP6, id, ipv4, ipv6, device, mpbgp, asn, false)
+                        writeBGPConfig(localIP4, localIP6, localIP6NonLL, id, ipv4, ipv6, device, mpbgp, asn, false)
                                 .compose(_v -> AsyncShell.execSucc(vertx, "birdc", "configure"))
                                 .onComplete(ar -> lock.release())
                 )
@@ -208,6 +216,7 @@ class ProvisionServiceImpl implements IProvisionService {
     @Override
     public IProvisionService provisionVPNWireGuard(@Nonnull String localIP4,
                                                    @Nonnull String localIP6,
+                                                   @Nonnull String localIP6NonLL,
                                                    int id,
                                                    int listenPort,
                                                    @Nullable String endpointWithPort,
@@ -222,6 +231,7 @@ class ProvisionServiceImpl implements IProvisionService {
                 .compose(lock -> writeWGConfig(true,
                         localIP4,
                         localIP6,
+                        localIP6NonLL,
                         generateWireGuardDevName(id),
                         listenPort,
                         endpointWithPort,
@@ -242,6 +252,7 @@ class ProvisionServiceImpl implements IProvisionService {
     @Override
     public IProvisionService reloadVPNWireGuard(@Nonnull String localIP4,
                                                 @Nonnull String localIP6,
+                                                @Nonnull String localIP6NonLL,
                                                 int id,
                                                 int listenPort,
                                                 @Nullable String endpointWithPort,
@@ -256,6 +267,7 @@ class ProvisionServiceImpl implements IProvisionService {
                 .compose(lock -> writeWGConfig(false,
                         localIP4,
                         localIP6,
+                        localIP6NonLL,
                         generateWireGuardDevName(id),
                         listenPort,
                         endpointWithPort,

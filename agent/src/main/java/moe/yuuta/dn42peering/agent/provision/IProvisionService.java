@@ -22,6 +22,7 @@ public interface IProvisionService {
     @Nonnull
     IProvisionService provisionBGP(@Nonnull String localIP4,
                                    @Nonnull String localIP6,
+                                   @Nonnull String localIP6NonLL,
                                    int id,
                                    @Nonnull String ipv4,
                                    @Nullable String ipv6,
@@ -34,6 +35,7 @@ public interface IProvisionService {
     @Nonnull
     IProvisionService reloadBGP(@Nonnull String localIP4,
                                 @Nonnull String localIP6,
+                                @Nonnull String localIP6NonLL,
                                 int id,
                                 @Nonnull String ipv4,
                                 @Nullable String ipv6,
@@ -50,6 +52,7 @@ public interface IProvisionService {
     @Nonnull
     IProvisionService provisionVPNWireGuard(@Nonnull String localIP4,
                                             @Nonnull String localIP6,
+                                            @Nonnull String localIP6NonLL,
                                             int id,
                                             int listenPort,
                                             @Nullable String endpointWithPort,
@@ -64,6 +67,7 @@ public interface IProvisionService {
     @Nonnull
     IProvisionService reloadVPNWireGuard(@Nonnull String localIP4,
                                          @Nonnull String localIP6,
+                                         @Nonnull String localIP6NonLL,
                                          int id,
                                          int listenPort,
                                          @Nullable String endpointWithPort,

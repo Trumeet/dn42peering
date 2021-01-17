@@ -898,7 +898,15 @@ public class ManageHandler implements ISubRouter {
                         root.put("endpoint", "This node is currently down! Edit the peer to choose another one.");
                     } else {
                         root.put("ipv4", node.getDn42Ip4());
-                        root.put("ipv6", node.getDn42Ip6());
+                        try {
+                            if(peer.isIPv6LinkLocal()) {
+                                root.put("ipv6", node.getDn42Ip6());
+                            } else {
+                                root.put("ipv6", node.getDn42Ip6NonLL());
+                            }
+                        } catch (IOException e) {
+                            return Future.failedFuture(e);
+                        }
                         root.put("asn", node.getAsn());
                         root.put("endpoint", node.getPublicIp());
                     }
@@ -915,8 +923,24 @@ public class ManageHandler implements ISubRouter {
         // Check if we can reload on the fly.
         // Otherwise, we can only deprovision and provision.
         // This will cause unnecessary wastes.
-        final boolean canReload = inPeer.getType() == existingPeer.getType() &&
+        boolean canReload = inPeer.getType() == existingPeer.getType() &&
                 inPeer.getNode() == existingPeer.getNode();
+        // wg-quick does not support switching local IP addresses.
+        // However, switch between link local addresses and real IPv6 addresses require the change of
+        // local v6 address. Therefore, in such cases, we have to do a full re-provision.
+        if(canReload && // Only check if no other factors prevent us from reloading.
+                inPeer.getType() == Peer.VPNType.WIREGUARD &&
+                existingPeer.getType() == Peer.VPNType.WIREGUARD) {
+            try {
+                final boolean existingLL = existingPeer.isIPv6LinkLocal();
+                final boolean newLL = inPeer.isIPv6LinkLocal();
+                if(existingLL != newLL) {
+                    canReload = false;
+                }
+            } catch (IOException e) {
+                return Future.failedFuture(e);
+            }
+        }
         Future<Void> future;
         if (canReload) {
             future = Future.<Node>future(f -> nodeService.getNode(inPeer.getNode(), f))

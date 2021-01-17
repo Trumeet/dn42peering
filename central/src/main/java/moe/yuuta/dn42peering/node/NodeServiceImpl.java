@@ -25,7 +25,7 @@ class NodeServiceImpl implements INodeService {
     @Override
     public INodeService listNodes(@Nonnull Handler<AsyncResult<List<Node>>> handler) {
         SqlTemplate
-                .forQuery(pool, "SELECT id, public_ip, dn42_ip4, dn42_ip6, asn, " +
+                .forQuery(pool, "SELECT id, public_ip, dn42_ip4, dn42_ip6, dn42_ip6_nonll, asn, " +
                         "internal_ip, internal_port, name, notice, vpn_type_wg " +
                         "FROM node")
                 .mapTo(NodeRowMapper.INSTANCE)
@@ -45,7 +45,7 @@ class NodeServiceImpl implements INodeService {
     public INodeService getNode(int id, @Nonnull Handler<AsyncResult<Node>> handler) {
         SqlTemplate
                 .forQuery(pool, "SELECT id, public_ip, asn, " +
-                        "dn42_ip4, dn42_ip6, " +
+                        "dn42_ip4, dn42_ip6, dn42_ip6_nonll, " +
                         "internal_ip, internal_port, name, notice, vpn_type_wg " +
                         "FROM node " +
                         "WHERE id = #{id}")

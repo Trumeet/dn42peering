@@ -37,6 +37,10 @@ public class Node {
     @TemplateParameter(name = "dn42_ip6")
     private String dn42Ip6;
 
+    @Column(name = "dn42_ip6_nonll")
+    @TemplateParameter(name = "dn42_ip6_nonll")
+    private String dn42Ip6NonLL;
+
     @Column(name = "asn")
     @TemplateParameter(name = "asn")
     private String asn;
@@ -68,6 +72,7 @@ public class Node {
         this.publicIp = object.getString("public_ip");
         this.dn42Ip4 = object.getString("dn42_ip4");
         this.dn42Ip6 = object.getString("dn42_ip6");
+        this.dn42Ip6NonLL = object.getString("dn42_ip6_nonll");
         this.asn = object.getString("asn");
         this.internalIp = object.getString("internal_ip");
         this.internalPort = object.getInteger("internal_port");
@@ -83,6 +88,7 @@ public class Node {
                 .put("public_ip", publicIp)
                 .put("dn42_ip4", dn42Ip4)
                 .put("dn42_ip6", dn42Ip6)
+                .put("dn42_ip6_nonll", dn42Ip6NonLL)
                 .put("asn", asn)
                 .put("internal_ip", internalIp)
                 .put("internal_port", internalPort)
@@ -106,6 +112,7 @@ public class Node {
                 .setId(id)
                 .setIpv4(dn42Ip4)
                 .setIpv6(dn42Ip6)
+                .setIpv6NonLL(dn42Ip6NonLL)
                 .build();
     }
 
@@ -149,6 +156,14 @@ public class Node {
 
     public void setDn42Ip6(String dn42Ip6) {
         this.dn42Ip6 = dn42Ip6;
+    }
+
+    public String getDn42Ip6NonLL() {
+        return dn42Ip6NonLL;
+    }
+
+    public void setDn42Ip6NonLL(String dn42Ip6NonLL) {
+        this.dn42Ip6NonLL = dn42Ip6NonLL;
     }
 
     public String getAsn() {

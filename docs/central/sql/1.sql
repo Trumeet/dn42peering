@@ -1,0 +1,1 @@
+ALTER TABLE `node` ADD `dn42_ip6_nonll` VARCHAR(39) NULL AFTER `dn42_ip6`;
