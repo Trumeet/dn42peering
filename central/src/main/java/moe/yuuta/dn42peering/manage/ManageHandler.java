@@ -941,6 +941,15 @@ public class ManageHandler implements ISubRouter {
                 return Future.failedFuture(e);
             }
         }
+        // wg-quick will also not clear EndPoint setting if we just reload it.
+        if(canReload && // Only check if no other factors prevent us from reloading.
+                inPeer.getType() == Peer.VPNType.WIREGUARD &&
+                existingPeer.getType() == Peer.VPNType.WIREGUARD) {
+            if(inPeer.getWgEndpoint() == null &&
+            existingPeer.getWgEndpoint() != null) {
+                canReload = false;
+            }
+        }
         Future<Void> future;
         if (canReload) {
             future = Future.<Node>future(f -> nodeService.getNode(inPeer.getNode(), f))
