@@ -15,7 +15,7 @@
            pattern="^172\.2[0-3](\.([1-9]?\d|[12]\d\d)){2}$"
            value="${(ipv4)!}"><br />
     <br />
-    <label for="ipv6">dn42 IPv6 Address (Optional):</label><br />
+    <label for="ipv6">dn42 or link local IPv6 Address (Optional):</label><br />
     <input type="text" id="ipv6" name="ipv6"
            placeholder="fe80::2980"
            value="${(ipv6)!}"><br />
