@@ -911,6 +911,12 @@ public class ManageHandler implements ISubRouter {
                     root.put("wgPresharedSecret", peer.getWgPresharedSecret());
                     root.put("wgSelfPubkey", peer.getWgSelfPubkey());
                     root.put("mpbgp", peer.isMpbgp());
+                    root.put("peer_type", peer.getType());
+                    root.put("peer_ipv4", peer.getIpv4());
+                    root.put("peer_ipv6", peer.getIpv6());
+                    if(peer.getWgEndpoint() != null) {
+                        root.put("peer_wg_listen_port", peer.getWgEndpointPort());
+                    }
 
                     if(node == null) {
                         root.put("ipv4", "This node is currently down! Edit the peer to choose another one.");
@@ -922,8 +928,10 @@ public class ManageHandler implements ISubRouter {
                         try {
                             if(peer.isIPv6LinkLocal()) {
                                 root.put("ipv6", node.getDn42Ip6());
+                                root.put("peer_link_local", true);
                             } else {
                                 root.put("ipv6", node.getDn42Ip6NonLL());
+                                root.put("peer_link_local", false);
                             }
                         } catch (IOException e) {
                             return Future.failedFuture(e);
