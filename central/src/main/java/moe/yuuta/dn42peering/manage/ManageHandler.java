@@ -69,7 +69,7 @@ public class ManageHandler implements ISubRouter {
         final Router router = Router.router(vertx);
         router.post().handler(BodyHandler.create().setBodyLimit(100 * 1024));
         router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
-        router.route().handler(BasicAuthHandler.create(new ASNAuthProvider(asnService)));
+        router.route().handler(BasicAuthHandler.create(new ASNAuthProvider(asnService), "manage portal"));
         router.route().handler(ctx -> {
             // Mark as activated.
             asnService.markAsActivated(ctx.user().principal().getString("username"), ar -> {
