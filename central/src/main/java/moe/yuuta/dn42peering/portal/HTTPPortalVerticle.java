@@ -2,6 +2,7 @@ package moe.yuuta.dn42peering.portal;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
@@ -20,13 +21,14 @@ public class HTTPPortalVerticle extends AbstractVerticle {
 
         final Router router = Router.router(vertx);
         router.get("/")
-                .produces("text/html")
                 .handler(ctx -> {
                     final JsonObject data = new JsonObject()
                             .put("name", config().getJsonObject("http").getValue("name"));
                     engine.render(data, "index.ftlh", res -> {
                         if(res.succeeded()) {
-                            ctx.response().end(res.result());
+                            ctx.response()
+                                    .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
+                                    .end(res.result());
                         } else {
                             ctx.fail(res.cause());
                             logger.error("Cannot render index.", res.cause());

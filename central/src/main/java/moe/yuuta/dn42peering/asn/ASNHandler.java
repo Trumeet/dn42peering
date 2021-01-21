@@ -2,6 +2,7 @@ package moe.yuuta.dn42peering.asn;
 
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
@@ -57,7 +58,9 @@ public class ASNHandler implements ISubRouter {
                 .handler(ctx -> {
                     renderIndex(engine, null, null, res -> {
                         if(res.succeeded()) {
-                            ctx.response().end(res.result());
+                            ctx.response()
+                                    .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
+                                    .end(res.result());
                         } else {
                             ctx.fail(res.cause());
                             logger.error("Cannot render /asn.", res.cause());
@@ -147,7 +150,9 @@ public class ASNHandler implements ISubRouter {
                             final List<MailResult> sendRes = ar.result().list();
                             renderSuccess(engine, sendRes, res -> {
                                 if(res.succeeded()) {
-                                    ctx.response().end(res.result());
+                                    ctx.response()
+                                            .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
+                                            .end(res.result());
                                 } else {
                                     ctx.fail(res.cause());
                                     logger.error("Cannot render /asn (success).", res.cause());
@@ -162,7 +167,9 @@ public class ASNHandler implements ISubRouter {
                                         upperASN,
                                         res -> {
                                     if(res.succeeded()) {
-                                        ctx.response().end(res.result());
+                                        ctx.response()
+                                                .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
+                                                .end(res.result());
                                     } else {
                                         ctx.fail(res.cause());
                                         logger.error("Cannot render /asn (with errors).", res.cause());

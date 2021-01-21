@@ -8,6 +8,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
@@ -89,7 +90,9 @@ public class ManageHandler implements ISubRouter {
                             .<Buffer>compose(peers -> Future.future(f -> renderIndex(engine, asn, peers, f)))
                             .onComplete(res -> {
                                 if (res.succeeded()) {
-                                    ctx.response().end(res.result());
+                                    ctx.response()
+                                            .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
+                                            .end(res.result());
                                 } else {
                                     ctx.fail(res.cause());
                                 }
@@ -102,7 +105,9 @@ public class ManageHandler implements ISubRouter {
                     final String asn = ctx.user().principal().getString("username");
                     renderForm(engine, nodeService, true, asn, null, null, res -> {
                         if (res.succeeded()) {
-                            ctx.response().end(res.result());
+                            ctx.response()
+                                    .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
+                                    .end(res.result());
                         } else {
                             res.cause().printStackTrace();
                             ctx.fail(res.cause());
@@ -210,7 +215,9 @@ public class ManageHandler implements ISubRouter {
                                             Arrays.asList(((FormException) err).errors),
                                             res -> {
                                                 if (res.succeeded()) {
-                                                    ctx.response().end(res.result());
+                                                    ctx.response()
+                                                            .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
+                                                            .end(res.result());
                                                 } else {
                                                     ctx.fail(res.cause());
                                                 }
@@ -243,7 +250,9 @@ public class ManageHandler implements ISubRouter {
                                     asn, peer, null, f)))
                             .onComplete(res -> {
                                 if (res.succeeded()) {
-                                    ctx.response().end(res.result());
+                                    ctx.response()
+                                            .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
+                                            .end(res.result());
                                 } else {
                                     res.cause().printStackTrace();
                                     ctx.fail(res.cause());
@@ -383,7 +392,9 @@ public class ManageHandler implements ISubRouter {
                                             Arrays.asList(((FormException) err).errors),
                                             res -> {
                                                 if (res.succeeded()) {
-                                                    ctx.response().end(res.result());
+                                                    ctx.response()
+                                                            .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
+                                                            .end(res.result());
                                                 } else {
                                                     ctx.fail(res.cause());
                                                 }
@@ -433,7 +444,9 @@ public class ManageHandler implements ISubRouter {
                     final String asn = ctx.user().principal().getString("username");
                     renderChangepw(engine, asn, null, res -> {
                         if (res.succeeded()) {
-                            ctx.response().end(res.result());
+                            ctx.response()
+                                    .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
+                                    .end(res.result());
                         } else {
                             res.cause().printStackTrace();
                             ctx.fail(res.cause());
@@ -483,7 +496,9 @@ public class ManageHandler implements ISubRouter {
                                             Arrays.asList(((FormException) err).errors),
                                             res -> {
                                                 if (res.succeeded()) {
-                                                    ctx.response().end(res.result());
+                                                    ctx.response()
+                                                            .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
+                                                            .end(res.result());
                                                 } else {
                                                     res.cause().printStackTrace();
                                                     ctx.fail(res.cause());
@@ -502,7 +517,9 @@ public class ManageHandler implements ISubRouter {
                     final String asn = ctx.user().principal().getString("username");
                     renderDA(engine, asn, null, res -> {
                         if (res.succeeded()) {
-                            ctx.response().end(res.result());
+                            ctx.response()
+                                    .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
+                                    .end(res.result());
                         } else {
                             res.cause().printStackTrace();
                             ctx.fail(res.cause());
@@ -540,7 +557,9 @@ public class ManageHandler implements ISubRouter {
                                             Arrays.asList(((FormException) err).errors),
                                             res -> {
                                                 if (res.succeeded()) {
-                                                    ctx.response().end(res.result());
+                                                    ctx.response()
+                                                            .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
+                                                            .end(res.result());
                                                 } else {
                                                     res.cause().printStackTrace();
                                                     ctx.fail(res.cause());
@@ -573,7 +592,9 @@ public class ManageHandler implements ISubRouter {
                             .compose(peer -> renderShowConfig(nodeService, engine, peer))
                             .onComplete(res -> {
                                 if (res.succeeded()) {
-                                    ctx.response().end(res.result());
+                                    ctx.response()
+                                            .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
+                                            .end(res.result());
                                 } else {
                                     res.cause().printStackTrace();
                                     ctx.fail(res.cause());
