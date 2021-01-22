@@ -938,7 +938,7 @@ public class ManageHandler implements ISubRouter {
                         } catch (IOException e) {
                             return Future.failedFuture(e);
                         }
-                        root.put("asn", node.getAsn());
+                        root.put("asn", node.getAsn().substring(2));
                         root.put("endpoint", node.getPublicIp());
                     }
 
