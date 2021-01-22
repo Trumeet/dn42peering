@@ -16,6 +16,7 @@
     <li>WireGuard Preshared Secret: ${wgPresharedSecret}</li>
     <li>MP-BGP: ${mpbgp?string('Yes', 'No')}</li>
 </ul>
+<#if show_example_config>
 <h2>Example Configuration</h2>
 <p>Notice: The following configuration is for newcomers or referencing purposes only.
     You should always check and modify them according to your environment.
@@ -66,6 +67,7 @@
 </pre>
 </#if>
 <p>Then, enable and start wg-quick service. For systemd users, you may want to use systemctl enable --now wg-quick@<b>&lt;Your WireGuard interface name&gt</b>.</p>
+</#if>
 <a href="/manage">Back</a>
 </body>
 </html>

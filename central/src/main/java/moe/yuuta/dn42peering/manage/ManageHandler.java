@@ -923,7 +923,9 @@ public class ManageHandler implements ISubRouter {
                         root.put("ipv6", "This node is currently down! Edit the peer to choose another one.");
                         root.put("asn", "This node is currently down! Edit the peer to choose another one.");
                         root.put("endpoint", "This node is currently down! Edit the peer to choose another one.");
+                        root.put("show_example_config", false);
                     } else {
+                        root.put("show_example_config", true);
                         root.put("ipv4", node.getDn42Ip4());
                         try {
                             if(peer.isIPv6LinkLocal()) {
