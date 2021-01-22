@@ -159,7 +159,11 @@ class PeerServiceImpl implements IPeerService {
                         "WHERE id = #{id} AND asn = #{asn}")
                 .mapTo(PeerRowMapper.INSTANCE)
                 .execute(params, f))
-                .compose(peers -> Future.succeededFuture(peers.iterator().next()))
+                .compose(peers -> {
+                    if(peers.iterator().hasNext())
+                        return Future.succeededFuture(peers.iterator().next());
+                    return Future.succeededFuture(null);
+                })
                 .onComplete(handler);
         return this;
     }
