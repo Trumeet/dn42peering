@@ -42,7 +42,7 @@
 <p>Choose ONE of the follow method.</p>
 <h4>wg-quick</h4>
 <pre>
-    # /etc/wireguard/<b>&lt;Your WireGuard Private Key&gt;</b>.conf
+    # /etc/wireguard/<b>&lt;Your WireGuard interface name&gt;</b>.conf
     [Interface]
     <#if peer_wg_listen_port??>
     ListenPort = ${peer_wg_listen_port?long?c}
