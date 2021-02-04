@@ -176,21 +176,28 @@ public class ManageHandler implements ISubRouter {
                                             return Future.failedFuture(e);
                                         }
                                     })
-                    ).<Peer>compose(peer -> Future.future(f -> peerService.isIPConflict(peer.getType(),
-                            peer.getIpv4(),
-                            peer.getIpv6(),
-                            ar -> {
-                                if (ar.succeeded()) {
-                                    if (ar.result()) {
-                                        f.fail(new FormException(peer,
-                                                "The IPv4 or IPv6 you specified conflicts with an existing peering with the same type."));
+                    ).<Peer>compose(peer -> Future.future(f -> {
+                        boolean needCheckIP6 = true;
+                        try {
+                            if(peer.isIPv6LinkLocal())
+                                needCheckIP6 = false;
+                        } catch (IOException ignored) {}
+                        peerService.isIPConflict(peer.getType(),
+                                peer.getIpv4(),
+                                needCheckIP6 ? peer.getIpv6() : null,
+                                ar -> {
+                                    if (ar.succeeded()) {
+                                        if (ar.result()) {
+                                            f.fail(new FormException(peer,
+                                                    "The IPv4 or IPv6 you specified conflicts with an existing peering with the same type."));
+                                        } else {
+                                            f.complete(peer);
+                                        }
                                     } else {
-                                        f.complete(peer);
+                                        f.fail(ar.cause());
                                     }
-                                } else {
-                                    f.fail(ar.cause());
-                                }
-                            }))
+                                });
+                            })
                     ).<Peer>compose(peer -> Future.future(f -> peerService.addNew(peer, ar -> {
                         if (ar.succeeded()) {
                             peer.setId((int) (long) ar.result());
@@ -339,6 +346,12 @@ public class ManageHandler implements ISubRouter {
                                     needCheckIPv6Conflict =
                                             !Objects.equals(existingPeer.getIpv6(), inPeer.getIpv6());
                                     if (inPeer.getIpv6() == null) needCheckIPv6Conflict = false;
+                                    else {
+                                        try {
+                                            if(inPeer.isIPv6LinkLocal())
+                                                needCheckIPv6Conflict = false;
+                                        } catch (IOException ignored) {}
+                                    }
                                 }
                                 final boolean nc6 = needCheckIPv6Conflict;
                                 return Future.future(f -> peerService.isIPConflict(inPeer.getType(),
