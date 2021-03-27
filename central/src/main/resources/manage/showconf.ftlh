@@ -49,12 +49,12 @@
     ListenPort = ${peer_wg_listen_port?long?c}
     </#if>
     PrivateKey = <b>&lt;Your WireGuard Private Key&gt;</b>
-    PostUp = ip addr add dev <b>&lt;Your WireGuard interface name&gt</b>; ${peer_ipv4}/32 peer ${ipv4}/32
+    PostUp = ip addr add dev <b>&lt;Your WireGuard interface name&gt</b> ${peer_ipv4}/32 peer ${ipv4}/32
     <#if peer_ipv6??>
     <#if peer_link_local>
-    PostUp = ip addr add dev <b>&lt;Your WireGuard interface name&gt</b>; ${peer_ipv6}/64
+    PostUp = ip addr add dev <b>&lt;Your WireGuard interface name&gt</b> ${peer_ipv6}/64
     <#else>
-    PostUp = ip addr add dev <b>&lt;Your WireGuard interface name&gt</b>; ${peer_ipv6}/64 peer ${ipv6}/64
+    PostUp = ip addr add dev <b>&lt;Your WireGuard interface name&gt</b> ${peer_ipv6}/64 peer ${ipv6}/64
     </#if>
     </#if>
     Table = off
