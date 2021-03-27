@@ -8,7 +8,7 @@ PostUp = ip addr add dev ${dev} ${self_ipv4}/32 peer ${peer_ipv4}/32
 <#if peer_ipv6_ll>
 PostUp = ip addr add dev ${dev} ${self_ipv6}/64
 <#else>
-PostUp = ip addr add dev ${dev} ${self_ipv6}/64 peer ${peer_ipv6}/64
+PostUp = ip addr add dev ${dev} ${self_ipv6}/128 peer ${peer_ipv6}/128
 </#if>
 </#if>
 Table = off
