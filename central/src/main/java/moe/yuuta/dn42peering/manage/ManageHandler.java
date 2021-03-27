@@ -27,9 +27,8 @@ import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.SchemaRouter;
 import io.vertx.json.schema.SchemaRouterOptions;
 import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
-import moe.yuuta.dn42peering.agent.proto.BGPRequest;
-import moe.yuuta.dn42peering.agent.proto.VertxAgentGrpc;
-import moe.yuuta.dn42peering.agent.proto.WGRequest;
+import moe.yuuta.dn42peering.provision.BGPRequestCommon;
+import moe.yuuta.dn42peering.provision.WGRequestCommon;
 import moe.yuuta.dn42peering.asn.IASNService;
 import moe.yuuta.dn42peering.jaba.Pair;
 import moe.yuuta.dn42peering.node.INodeService;
@@ -40,6 +39,7 @@ import moe.yuuta.dn42peering.peer.ProvisionStatus;
 import moe.yuuta.dn42peering.portal.FormException;
 import moe.yuuta.dn42peering.portal.HTTPException;
 import moe.yuuta.dn42peering.portal.ISubRouter;
+import moe.yuuta.dn42peering.provision.IProvisionRemoteService;
 import moe.yuuta.dn42peering.whois.IWhoisService;
 import moe.yuuta.dn42peering.whois.WhoisObject;
 import org.apache.commons.validator.routines.InetAddressValidator;
@@ -64,6 +64,7 @@ public class ManageHandler implements ISubRouter {
         final IWhoisService whoisService = IWhoisService.createProxy(vertx, IWhoisService.ADDRESS);
         final IPeerService peerService = IPeerService.createProxy(vertx);
         final INodeService nodeService = INodeService.createProxy(vertx);
+        final IProvisionRemoteService provisionService = IProvisionRemoteService.create(vertx);
         final TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx, "ftlh");
 
         final Router router = Router.router(vertx);
@@ -209,7 +210,7 @@ public class ManageHandler implements ISubRouter {
                                         .setStatusCode(303)
                                         .putHeader("Location", "/manage")
                                         .end();
-                                provisionPeer(vertx, nodeService, peer).onComplete(ar ->
+                                provisionPeer(nodeService, provisionService, peer).onComplete(ar ->
                                         this.handleProvisionResult(peerService, peer, ar));
                             })
                             .onFailure(err -> {
@@ -382,7 +383,7 @@ public class ManageHandler implements ISubRouter {
                                         .end();
                                 final Peer existingPeer = pair.a;
                                 final Peer inPeer = pair.b;
-                                reloadPeer(vertx, nodeService, existingPeer, inPeer).onComplete(ar ->
+                                reloadPeer(nodeService, provisionService, existingPeer, inPeer).onComplete(ar ->
                                         this.handleProvisionResult(peerService, inPeer, ar));
                             })
                             .onFailure(err -> {
@@ -435,7 +436,7 @@ public class ManageHandler implements ISubRouter {
                                 }
                                 return Future.succeededFuture(peer);
                             })
-                            .compose(peer -> unprovisionPeer(vertx, nodeService, peer))
+                            .compose(peer -> unprovisionPeer(nodeService, provisionService, peer))
                             .compose(_v -> Future.<Void>future(f -> peerService.deletePeer(asn, id, f)))
                             .onSuccess(_id -> ctx.response()
                                     .setStatusCode(303)
@@ -961,8 +962,8 @@ public class ManageHandler implements ISubRouter {
     }
 
     @Nonnull
-    private Future<Void> reloadPeer(@Nonnull Vertx vertx,
-                                    @Nonnull INodeService nodeService,
+    private Future<Void> reloadPeer(@Nonnull INodeService nodeService,
+                                    @Nonnull IProvisionRemoteService provisionService,
                                     @Nonnull Peer existingPeer, @Nonnull Peer inPeer) {
         // Check if we can reload on the fly.
         // Otherwise, we can only deprovision and provision.
@@ -1004,33 +1005,37 @@ public class ManageHandler implements ISubRouter {
                         return Future.succeededFuture(node);
                     })
                     .compose(node -> {
-                        final VertxAgentGrpc.AgentVertxStub stub = VertxAgentGrpc.newVertxStub(node.toChannel(vertx));
                         switch (existingPeer.getType()) {
                             case WIREGUARD:
-                                return stub.reloadWG(
-                                        inPeer.toWGRequest().setNode(node.toRPCNode()).build()
-                                ).compose(wgReply -> Future.succeededFuture(new Pair<>(node, wgReply.getDevice())));
+                                final WGRequestCommon wgReq = inPeer.toWGRequest();
+                                wgReq.setNode(node.toRPCNode());
+                                return Future.<String>future(f -> provisionService.reloadWG(
+                                        node.toRPCNode(),
+                                        wgReq,
+                                        f)
+                                ).compose(device -> Future.succeededFuture(new Pair<>(node, device)));
                             default:
                                 throw new UnsupportedOperationException("Bug: Unknown type.");
                         }
                     })
                     .compose(pair -> {
-                        final VertxAgentGrpc.AgentVertxStub stub = VertxAgentGrpc.newVertxStub(pair.a.toChannel(vertx));
-                        return stub.reloadBGP(inPeer.toBGPRequest()
-                                .setNode(pair.a.toRPCNode())
-                                .setDevice(pair.b)
-                                .build())
-                                .compose(reply -> Future.succeededFuture(null));
+                        final BGPRequestCommon bgpReq = inPeer.toBGPRequest();
+                        bgpReq.setNode(pair.a.toRPCNode());
+                        bgpReq.setDevice(pair.b);
+                        return Future.future(f -> provisionService.reloadBGP(
+                                pair.a.toRPCNode(),
+                                bgpReq,
+                                f));
                     });
         } else {
-            future = unprovisionPeer(vertx, nodeService, existingPeer)
-                    .compose(f -> provisionPeer(vertx, nodeService, inPeer));
+            future = unprovisionPeer(nodeService, provisionService, existingPeer)
+                    .compose(f -> provisionPeer(nodeService, provisionService, inPeer));
         }
         return future;
     }
 
-    private Future<Void> unprovisionPeer(@Nonnull Vertx vertx,
-                                         @Nonnull INodeService nodeService,
+    private Future<Void> unprovisionPeer(@Nonnull INodeService nodeService,
+                                         @Nonnull IProvisionRemoteService provisionService,
                                          @Nonnull Peer existingPeer) {
         return Future.<Node>future(f -> nodeService.getNode(existingPeer.getNode(), f))
                 .compose(node -> {
@@ -1040,27 +1045,43 @@ public class ManageHandler implements ISubRouter {
                     return Future.succeededFuture(node);
                 })
                 .compose(node -> {
-                    final VertxAgentGrpc.AgentVertxStub stub = VertxAgentGrpc.newVertxStub(node.toChannel(vertx));
                     switch (existingPeer.getType()) {
                         case WIREGUARD:
-                            return stub.deleteWG(WGRequest.newBuilder().setId(existingPeer.getId()).build())
-                                    .compose(wgReply -> Future.succeededFuture(node));
+                            return Future.<Void>future(f -> provisionService.deleteWG(
+                                    node.toRPCNode(),
+                                    new WGRequestCommon(null,
+                                            (long)existingPeer.getId(),
+                                            null,
+                                            null,
+                                            null,
+                                            null,
+                                            null,
+                                            null,
+                                            null),
+                                    f))
+                                    .compose(res -> Future.succeededFuture(node));
                         default:
                             throw new UnsupportedOperationException("Bug: Unknown type.");
                     }
                 })
                 .compose(node -> {
-                    final VertxAgentGrpc.AgentVertxStub stub = VertxAgentGrpc.newVertxStub(node.toChannel(vertx));
-                    return stub.deleteBGP(BGPRequest.newBuilder().setId(existingPeer.getId())
-                            .build())
-                            .compose(reply -> Future.succeededFuture(null));
+                    return Future.future(f -> provisionService.deleteBGP(
+                            node.toRPCNode(),
+                            new BGPRequestCommon(null,
+                                    (long)existingPeer.getId(),
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null),
+                            f));
                 })
         ;
     }
 
     @Nonnull
-    private Future<Void> provisionPeer(@Nonnull Vertx vertx,
-                               @Nonnull INodeService nodeService,
+    private Future<Void> provisionPeer(@Nonnull INodeService nodeService,
+                               @Nonnull IProvisionRemoteService provisionService,
                                @Nonnull Peer inPeer) {
         return Future.<Node>future(f -> nodeService.getNode(inPeer.getNode(), f))
                 .compose(node -> {
@@ -1070,23 +1091,27 @@ public class ManageHandler implements ISubRouter {
                     return Future.succeededFuture(node);
                 })
                 .compose(node -> {
-                    final VertxAgentGrpc.AgentVertxStub stub = VertxAgentGrpc.newVertxStub(node.toChannel(vertx));
                     switch (inPeer.getType()) {
                         case WIREGUARD:
-                            return stub.provisionWG(
-                                    inPeer.toWGRequest().setNode(node.toRPCNode()).build()
-                            ).compose(wgReply -> Future.succeededFuture(new Pair<>(node, wgReply.getDevice())));
+                            final WGRequestCommon wgReq = inPeer.toWGRequest();
+                            wgReq.setNode(node.toRPCNode());
+                            return Future.<String>future(f -> provisionService.provisionWG(
+                                    node.toRPCNode(),
+                                    wgReq,
+                                    f)
+                            ).compose(device -> Future.succeededFuture(new Pair<>(node, device)));
                         default:
                             throw new UnsupportedOperationException("Bug: Unknown type.");
                     }
                 })
                 .compose(pair -> {
-                    final VertxAgentGrpc.AgentVertxStub stub = VertxAgentGrpc.newVertxStub(pair.a.toChannel(vertx));
-                    return stub.provisionBGP(inPeer.toBGPRequest()
-                            .setNode(pair.a.toRPCNode())
-                            .setDevice(pair.b)
-                            .build())
-                            .compose(reply -> Future.succeededFuture(null));
+                    final BGPRequestCommon bgpReq = inPeer.toBGPRequest();
+                    bgpReq.setNode(pair.a.toRPCNode());
+                    bgpReq.setDevice(pair.b);
+                    return Future.future(f -> provisionService.provisionBGP(
+                            pair.a.toRPCNode(),
+                            bgpReq,
+                            f));
                 });
     }
 

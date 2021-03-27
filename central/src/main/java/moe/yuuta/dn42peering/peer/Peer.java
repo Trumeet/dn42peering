@@ -10,8 +10,8 @@ import io.vertx.sqlclient.templates.annotations.Column;
 import io.vertx.sqlclient.templates.annotations.ParametersMapped;
 import io.vertx.sqlclient.templates.annotations.RowMapped;
 import io.vertx.sqlclient.templates.annotations.TemplateParameter;
-import moe.yuuta.dn42peering.agent.proto.BGPRequest;
-import moe.yuuta.dn42peering.agent.proto.WGRequest;
+import moe.yuuta.dn42peering.provision.BGPRequestCommon;
+import moe.yuuta.dn42peering.provision.WGRequestCommon;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -193,26 +193,29 @@ public class Peer {
     }
     
     @GenIgnore
-    public WGRequest.Builder toWGRequest() {
-        return WGRequest.newBuilder()
-                .setId(getId())
-                .setListenPort(Integer.parseInt(calcWireGuardPort()))
-                .setEndpoint(getWgEndpoint() == null && getWgEndpointPort() == null ? "" : String.format("%s:%d", getWgEndpoint(), getWgEndpointPort()))
-                .setPeerPubKey(getWgPeerPubkey())
-                .setSelfPrivKey(getWgSelfPrivKey())
-                .setSelfPresharedSecret(getWgPresharedSecret())
-                .setPeerIPv4(getIpv4())
-                .setPeerIPv6(getIpv6() == null ? "" : getIpv6());
+    public WGRequestCommon toWGRequest() {
+        return new WGRequestCommon(
+                null,
+                (long)id,
+                Integer.parseInt(calcWireGuardPort()),
+                wgEndpoint == null && wgEndpointPort == null ? "" :
+                        String.format("%s:%d", getWgEndpoint(), getWgEndpointPort()),
+                wgPeerPubkey,
+                wgSelfPrivKey,
+                wgPresharedSecret,
+                ipv4,
+                ipv6 == null ? "" : ipv6);
     }
     
     @GenIgnore
-    public BGPRequest.Builder toBGPRequest() {
-        return BGPRequest.newBuilder()
-                .setId(getId())
-                .setAsn(getAsn())
-                .setIpv4(getIpv4())
-                .setIpv6(getIpv6() == null ? "" : getIpv6())
-                .setMpbgp(isMpbgp());
+    public BGPRequestCommon toBGPRequest() {
+        return new BGPRequestCommon(null,
+                (long)id,
+                asn,
+                mpbgp,
+                ipv4,
+                ipv6 == null ? "" : ipv6,
+                null);
     }
 
     // START GETTERS / SETTERS

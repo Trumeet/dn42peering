@@ -11,6 +11,7 @@ import io.vertx.sqlclient.templates.annotations.Column;
 import io.vertx.sqlclient.templates.annotations.ParametersMapped;
 import io.vertx.sqlclient.templates.annotations.RowMapped;
 import io.vertx.sqlclient.templates.annotations.TemplateParameter;
+import moe.yuuta.dn42peering.provision.NodeCommon;
 import moe.yuuta.dn42peering.peer.Peer;
 
 import javax.annotation.Nonnull;
@@ -107,21 +108,13 @@ public class Node {
 
     @GenIgnore
     @Nonnull
-    public moe.yuuta.dn42peering.agent.proto.Node toRPCNode() {
-        return moe.yuuta.dn42peering.agent.proto.Node.newBuilder()
-                .setId(id)
-                .setIpv4(dn42Ip4)
-                .setIpv6(dn42Ip6)
-                .setIpv6NonLL(dn42Ip6NonLL)
-                .build();
-    }
-
-    @GenIgnore
-    @Nonnull
-    public ManagedChannel toChannel(@Nonnull Vertx vertx) {
-        return VertxChannelBuilder.forAddress(vertx, internalIp, internalPort)
-                .usePlaintext()
-                .build();
+    public NodeCommon toRPCNode() {
+        return new NodeCommon(id,
+                dn42Ip4,
+                dn42Ip6,
+                dn42Ip6NonLL,
+                internalIp,
+                internalPort);
     }
 
     // BEGIN GETTER / SETTER

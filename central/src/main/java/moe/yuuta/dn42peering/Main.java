@@ -8,6 +8,7 @@ import moe.yuuta.dn42peering.asn.ASNVerticle;
 import moe.yuuta.dn42peering.node.NodeVerticle;
 import moe.yuuta.dn42peering.peer.PeerVerticle;
 import moe.yuuta.dn42peering.portal.HTTPPortalVerticle;
+import moe.yuuta.dn42peering.provision.ProvisionVerticle;
 import moe.yuuta.dn42peering.whois.WhoisVerticle;
 
 import javax.annotation.Nonnull;
@@ -40,6 +41,7 @@ public class Main {
                 Future.<String>future(f -> vertx.deployVerticle(WhoisVerticle.class.getName(), options, f)),
                 Future.<String>future(f -> vertx.deployVerticle(ASNVerticle.class.getName(), options, f)),
                 Future.<String>future(f -> vertx.deployVerticle(NodeVerticle.class.getName(), options, f)),
+                Future.<String>future(f -> vertx.deployVerticle(ProvisionVerticle.class.getName(), options, f)),
                 Future.<String>future(f -> vertx.deployVerticle(HTTPPortalVerticle.class.getName(), options, f))
         ).onComplete(res -> {
             if (res.succeeded()) {
