@@ -687,6 +687,7 @@ public class ManageHandler implements ISubRouter {
                                             !Inet6Address.getByName(ipv6).isLinkLocalAddress()) {
                                         errors.add("IPv6 address is illegal. It must be a dn42 or link-local IPv6 address.");
                                     }
+                                    ipv6 = ipv6.replaceAll("((?::0\\b){2,}):?(?!\\S*\\b\\1:0\\b)(\\S*)", "::$2");
                                 } else
                                     errors.add("IPv6 address is illegal. Cannot parse your address.");
                             } else {
