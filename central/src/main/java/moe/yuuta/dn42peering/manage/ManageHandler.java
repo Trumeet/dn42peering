@@ -214,9 +214,7 @@ public class ManageHandler implements ISubRouter {
                                         this.handleProvisionResult(peerService, peer, ar));
                             })
                             .onFailure(err -> {
-                                if (err instanceof HTTPException) {
-                                    ctx.response().setStatusCode(((HTTPException) err).code).end();
-                                } else if (err instanceof FormException) {
+                                if (err instanceof FormException) {
                                     renderForm(engine, nodeService,
                                             true, asn,
                                             ((Peer) ((FormException) err).data),
@@ -231,7 +229,7 @@ public class ManageHandler implements ISubRouter {
                                                 }
                                             });
                                 } else {
-                                    logger.error("Cannot add peer.", err);
+                                    if(!(err instanceof HTTPException)) logger.error("Cannot add peer.", err);
                                     ctx.fail(err);
                                 }
                             });
@@ -262,7 +260,8 @@ public class ManageHandler implements ISubRouter {
                                             .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
                                             .end(res.result());
                                 } else {
-                                    res.cause().printStackTrace();
+                                    if(!(res.cause() instanceof HTTPException)) logger.error(String.format("Cannot show peer %s", id),
+                                            res.cause());
                                     ctx.fail(res.cause());
                                 }
                             });
@@ -387,9 +386,7 @@ public class ManageHandler implements ISubRouter {
                                         this.handleProvisionResult(peerService, inPeer, ar));
                             })
                             .onFailure(err -> {
-                                if (err instanceof HTTPException) {
-                                    ctx.response().setStatusCode(((HTTPException) err).code).end();
-                                } else if (err instanceof FormException) {
+                                if (err instanceof FormException) {
                                     final Peer peer = (Peer) ((FormException) err).data;
                                     if(peer != null) {
                                         // The exception may be generated from parseForm
@@ -414,7 +411,7 @@ public class ManageHandler implements ISubRouter {
                                                 }
                                             });
                                 } else {
-                                    logger.error("Cannot edit peer.", err);
+                                    if(!(err instanceof HTTPException)) logger.error("Cannot edit peer.", err);
                                     ctx.fail(err);
                                 }
                             });
@@ -443,12 +440,8 @@ public class ManageHandler implements ISubRouter {
                                     .putHeader("Location", "/manage")
                                     .end())
                             .onFailure(err -> {
-                                if (err instanceof HTTPException) {
-                                    ctx.response().setStatusCode(((HTTPException) err).code).end();
-                                } else {
-                                    logger.error("Cannot delete peer.", err);
-                                    ctx.fail(err);
-                                }
+                                if(!(err instanceof HTTPException)) logger.error("Cannot delete peer.", err);
+                                ctx.fail(err);
                             });
                 });
 
@@ -503,9 +496,7 @@ public class ManageHandler implements ISubRouter {
                                         .end();
                             })
                             .onFailure(err -> {
-                                if (err instanceof HTTPException) {
-                                    ctx.response().setStatusCode(((HTTPException) err).code).end();
-                                } else if (err instanceof FormException) {
+                                if (err instanceof FormException) {
                                     renderChangepw(engine, asn,
                                             Arrays.asList(((FormException) err).errors),
                                             res -> {
@@ -519,7 +510,7 @@ public class ManageHandler implements ISubRouter {
                                                 }
                                             });
                                 } else {
-                                    logger.error("Cannot change password.", err);
+                                    if(!(err instanceof HTTPException)) logger.error("Cannot change password.", err);
                                     ctx.fail(err);
                                 }
                             });
@@ -564,9 +555,7 @@ public class ManageHandler implements ISubRouter {
                                         .end();
                             })
                             .onFailure(err -> {
-                                if (err instanceof HTTPException) {
-                                    ctx.response().setStatusCode(((HTTPException) err).code).end();
-                                } else if (err instanceof FormException) {
+                                if (err instanceof FormException) {
                                     renderDA(engine, asn,
                                             Arrays.asList(((FormException) err).errors),
                                             res -> {
@@ -610,7 +599,9 @@ public class ManageHandler implements ISubRouter {
                                             .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
                                             .end(res.result());
                                 } else {
-                                    res.cause().printStackTrace();
+                                    if(!(res.cause() instanceof HTTPException))
+                                        logger.error(String.format("Cannot render show configuration %s", id),
+                                            res.cause());
                                     ctx.fail(res.cause());
                                 }
                             });

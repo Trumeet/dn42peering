@@ -38,6 +38,10 @@ public class HTTPPortalVerticle extends AbstractVerticle {
         router.mountSubRouter("/asn", new ASNHandler().mount(vertx));
         router.mountSubRouter("/manage", new ManageHandler().mount(vertx));
         router.errorHandler(500, ctx -> {
+            if(ctx.failure() instanceof HTTPException) {
+                ctx.response().setStatusCode(((HTTPException) ctx.failure()).code).end();
+                return;
+            }
             logger.error("Generic Error", ctx.failure());
         });
         vertx.createHttpServer()
