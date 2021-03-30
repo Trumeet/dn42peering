@@ -13,8 +13,8 @@
     <li>dn42 IPv4 Address: ${ipv4}</li>
     <li>dn42 IPv6 Address: ${ipv6}</li>
     <li>ASN: AS${asn}</li>
-    <li>WireGuard Public Key: ${wgSelfPubkey}</li>
-    <li>WireGuard Preshared Secret: ${wgPresharedSecret}</li>
+    <li>WireGuard Public Key: <code>${wgSelfPubkey}</code></li>
+    <li>WireGuard Preshared Secret: <code>${wgPresharedSecret}</code></li>
     <li>MP-BGP: ${mpbgp?string('Yes', 'No')}</li>
 </ul>
 <#if show_example_config>
