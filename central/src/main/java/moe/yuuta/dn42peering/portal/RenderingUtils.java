@@ -6,11 +6,24 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.service.ServiceResponse;
 
 import javax.annotation.Nonnull;
 
 public class RenderingUtils {
+    public static Handler<AsyncResult<Buffer>> getGeneralRenderingHandler(@Nonnull RoutingContext ctx) {
+        return res -> {
+            if (res.succeeded()) {
+                ctx.response()
+                        .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
+                        .end(res.result());
+            } else {
+                ctx.fail(res.cause());
+            }
+        };
+    }
+
     public static Handler<AsyncResult<Buffer>> getGeneralRenderingHandler(@Nonnull Handler<AsyncResult<ServiceResponse>> handler) {
         return res -> {
             if (res.succeeded()) {

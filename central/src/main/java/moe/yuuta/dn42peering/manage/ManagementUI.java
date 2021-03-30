@@ -7,7 +7,6 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.common.template.TemplateEngine;
@@ -28,19 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-class ManagementUI {
-    private static Handler<AsyncResult<Buffer>> getGeneralRenderingHandler(@Nonnull RoutingContext ctx) {
-        return res -> {
-            if (res.succeeded()) {
-                ctx.response()
-                        .putHeader(HttpHeaders.CONTENT_TYPE, "text/html")
-                        .end(res.result());
-            } else {
-                ctx.fail(res.cause());
-            }
-        };
-    }
+import static moe.yuuta.dn42peering.portal.RenderingUtils.getGeneralRenderingHandler;
 
+class ManagementUI {
     public static void renderIndex(@Nonnull TemplateEngine engine,
                                    @Nonnull String asn, @Nonnull List<Peer> peers,
                                    @Nonnull RoutingContext ctx) {
