@@ -29,8 +29,14 @@
         <processorPath useClasspath="false">
           <entry name="$USER_HOME$/.local/share/gradle/caches/modules-2/files-2.1/io.vertx/vertx-sql-client-templates/4.0.3/bbb167fc181ab7e793485da00b370610a6230fdf/vertx-sql-client-templates-4.0.3.jar" />
           <entry name="$USER_HOME$/.local/share/gradle/caches/modules-2/files-2.1/io.vertx/vertx-codegen/4.0.3/416429ea05c4c43afcf4104ab488bda10f43ba87/vertx-codegen-4.0.3-processor.jar" />
+          <entry name="$USER_HOME$/.local/share/gradle/caches/modules-2/files-2.1/io.vertx/vertx-web-api-service/4.0.3/15b6af169e6e1987822448f3a330b4a023d701b1/vertx-web-api-service-4.0.3.jar" />
           <entry name="$USER_HOME$/.local/share/gradle/caches/modules-2/files-2.1/io.vertx/vertx-service-proxy/4.0.3/df93b096a38ee0120e06943a8f7e3d0627c97418/vertx-service-proxy-4.0.3.jar" />
           <entry name="$USER_HOME$/.local/share/gradle/caches/modules-2/files-2.1/io.vertx/vertx-sql-client/4.0.3/2bb64597f96e27a4a431967bea77592286d35462/vertx-sql-client-4.0.3.jar" />
+          <entry name="$USER_HOME$/.local/share/gradle/caches/modules-2/files-2.1/io.vertx/vertx-web-validation/4.0.3/2f819dd0b8082664c339410cff6e40da3ae31536/vertx-web-validation-4.0.3.jar" />
+          <entry name="$USER_HOME$/.local/share/gradle/caches/modules-2/files-2.1/io.vertx/vertx-web/4.0.3/5d0cec868aadac3e098b1ab6409dc2cebae83930/vertx-web-4.0.3.jar" />
+          <entry name="$USER_HOME$/.local/share/gradle/caches/modules-2/files-2.1/io.vertx/vertx-json-schema/4.0.3/fb31dae192398722a07b23892e9f261a7b6c4a85/vertx-json-schema-4.0.3.jar" />
+          <entry name="$USER_HOME$/.local/share/gradle/caches/modules-2/files-2.1/io.vertx/vertx-web-common/4.0.3/274167d895a6170335a5fd7e71d4519b9608d275/vertx-web-common-4.0.3.jar" />
+          <entry name="$USER_HOME$/.local/share/gradle/caches/modules-2/files-2.1/io.vertx/vertx-auth-common/4.0.3/177afb713c00713eff76a6cd83a8090c601af474/vertx-auth-common-4.0.3.jar" />
           <entry name="$USER_HOME$/.local/share/gradle/caches/modules-2/files-2.1/io.vertx/vertx-core/4.0.3/40c496ede9a948ec673df8cf5ab227ff853dd061/vertx-core-4.0.3.jar" />
           <entry name="$USER_HOME$/.local/share/gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-core/2.11.3/c2351800432bdbdd8284c3f5a7f0782a352aa84a/jackson-core-2.11.3.jar" />
           <entry name="$USER_HOME$/.local/share/gradle/caches/modules-2/files-2.1/io.netty/netty-handler-proxy/4.1.60.Final/2352f12826400e5db64b36fd951508ce9a61c196/netty-handler-proxy-4.1.60.Final.jar" />
@@ -45,6 +51,7 @@
           <entry name="$USER_HOME$/.local/share/gradle/caches/modules-2/files-2.1/io.netty/netty-buffer/4.1.60.Final/9d213d090deeca2541ad6827eb3345bcd6e1e701/netty-buffer-4.1.60.Final.jar" />
           <entry name="$USER_HOME$/.local/share/gradle/caches/modules-2/files-2.1/io.netty/netty-resolver/4.1.60.Final/caba5004618d27386ee9d5ee8b23b09b6548fb0b/netty-resolver-4.1.60.Final.jar" />
           <entry name="$USER_HOME$/.local/share/gradle/caches/modules-2/files-2.1/io.netty/netty-common/4.1.60.Final/44540113f7148f1014be879663501db8da1c37b0/netty-common-4.1.60.Final.jar" />
+          <entry name="$USER_HOME$/.local/share/gradle/caches/modules-2/files-2.1/io.vertx/vertx-bridge-common/4.0.3/423970a10bdc4fa14ce4ad18ef3f45d703e53420/vertx-bridge-common-4.0.3.jar" />
         </processorPath>
         <module name="dn42peering.central.main" />
       </profile>

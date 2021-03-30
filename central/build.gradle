@@ -37,6 +37,8 @@ dependencies {
     annotationProcessor "io.vertx:vertx-service-proxy:${project.vertxVersion}"
     compileOnly "io.vertx:vertx-codegen:${project.vertxVersion}"
     implementation "io.vertx:vertx-grpc:${project.vertxVersion}"
+    implementation "io.vertx:vertx-web-api-service:${project.vertxVersion}"
+    annotationProcessor "io.vertx:vertx-web-api-service:${project.vertxVersion}"
 
     implementation project(':rpc-common')
 }
