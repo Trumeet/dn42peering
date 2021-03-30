@@ -55,7 +55,7 @@
     <#if peer_link_local>
     PostUp = ip addr add dev <b>&lt;Your WireGuard interface name&gt</b> ${peer_ipv6}/64
     <#else>
-    PostUp = ip addr add dev <b>&lt;Your WireGuard interface name&gt</b> ${peer_ipv6}/64 peer ${ipv6}/64
+    PostUp = ip addr add dev <b>&lt;Your WireGuard interface name&gt</b> ${peer_ipv6}/128 peer ${ipv6}/128
     </#if>
     </#if>
     Table = off
