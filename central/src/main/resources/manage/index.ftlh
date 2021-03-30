@@ -12,16 +12,14 @@
 <p><a href="/manage/new">New Peer</a></p>
 <table style="width: 100%">
     <tr>
-        <th>IPv4</th>
-        <th>IPv6</th>
+        <th>IP</th>
         <th>Method</th>
         <th>Provision</th>
         <th>Actions</th>
     </tr>
     <#list peers as peer>
     <tr>
-        <td>${peer.ipv4}</td>
-        <td><#if peer.ipv6??>${peer.ipv6}<#else>None</#if></td>
+        <td>${peer.ipv4}<#if peer.ipv6??><br />${peer.ipv6}</#if></td>
         <td>${peer.type}</td>
         <td>${peer.provisionStatus}</td>
         <td><a href="/manage/edit?id=${peer.id}">Edit</a> |
