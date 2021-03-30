@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <#include "../style.ftlh">
     <title>Register your ASN</title>
 </head>
-<body>
+<body class="markdown-body">
 <h1>Your ASN is registered</h1>
 <p>Please check your email for initial password. We had sent the password to the following emails addresses:</p>
 <div>

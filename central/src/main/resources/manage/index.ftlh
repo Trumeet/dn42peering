@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <#include "../style.ftlh">
     <title>Manage your peering</title>
 </head>
-<body>
+<body class="markdown-body">
 <h1>Manage your peering</h1>
 <p>You are logged in as: ${asn}.</p>
 <h2>Peers</h2>

@@ -2,9 +2,10 @@
 <html lang=en>
 <head>
     <meta charset=utf-8>
+    <#include "style.ftlh">
     <title>${name} dn42 Automatic Peering</title>
 </head>
-<body>
+<body class="markdown-body">
 <h1>${name} dn42 Peering</h1>
 <p><b>Already a peer? <a href="/manage">Login</a>.</b></p>
 <h2>Peering Process</h2>

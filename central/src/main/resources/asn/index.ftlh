@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
+    <#include "../style.ftlh">
     <title>Register your ASN</title>
 </head>
-<body>
+<body class="markdown-body">
 <h1>Register your ASN</h1>
 <p>You may register your ASN now. One ASN can have multiple peers with us.</p>
 <#if errors??>

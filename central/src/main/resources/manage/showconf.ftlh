@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <#include "../style.ftlh">
     <title>Peering Configuration</title>
 </head>
-<body>
+<body class="markdown-body">
 <h1>Peering Configuration</h1>
 <p>Here are the information needed for you to setup:</p>
 <ul>
