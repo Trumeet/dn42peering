@@ -2,10 +2,12 @@ package moe.yuuta.dn42peering.manage;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.Cookie;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -20,6 +22,7 @@ import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.SchemaRouter;
 import io.vertx.json.schema.SchemaRouterOptions;
 import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
+import moe.yuuta.dn42peering.admin.SudoUtils;
 import moe.yuuta.dn42peering.asn.IASNService;
 import moe.yuuta.dn42peering.jaba.Pair;
 import moe.yuuta.dn42peering.node.INodeService;
@@ -59,7 +62,7 @@ public class ManageHandler implements ISubRouter {
         router.route().handler(BasicAuthHandler.create(new ASNAuthProvider(asnService), "manage portal"));
         router.route().handler(ctx -> {
             // Mark as activated.
-            asnService.markAsActivated(ctx.user().principal().getString("username"), ar -> {
+            asnService.markAsActivated(getActualASN(ctx, false), ar -> {
                 if (ar.succeeded()) {
                     ctx.next();
                 } else {
@@ -71,7 +74,7 @@ public class ManageHandler implements ISubRouter {
         router.get("/")
                 .produces("text/html")
                 .handler(ctx -> {
-                    final String asn = ctx.user().principal().getString("username");
+                    final String asn = getActualASN(ctx, true);
                     Future.<List<moe.yuuta.dn42peering.peer.Peer>>future(f ->
                             peerService.listUnderASN(asn, f))
                             .onSuccess(peers -> renderIndex(engine, asn, peers, ctx))
@@ -81,7 +84,7 @@ public class ManageHandler implements ISubRouter {
         router.get("/new")
                 .produces("text/html")
                 .handler(ctx -> {
-                    final String asn = ctx.user().principal().getString("username");
+                    final String asn = getActualASN(ctx, true);
                     renderForm(engine, nodeService, true, asn, null, null, ctx);
                 });
 
@@ -106,7 +109,7 @@ public class ManageHandler implements ISubRouter {
                         .predicate(RequestPredicate.BODY_REQUIRED)
                         .build())
                 .handler(ctx -> {
-                    final String asn = ctx.user().principal().getString("username");
+                    final String asn = getActualASN(ctx, true);
                     final JsonObject parameters = ctx.<RequestParameters>get(ValidationHandler.REQUEST_CONTEXT_KEY)
                             .body().getJsonObject();
                     // Parse peer
@@ -174,7 +177,7 @@ public class ManageHandler implements ISubRouter {
                         .queryParameter(param("id", stringSchema()))
                         .build())
                 .handler(ctx -> {
-                    final String asn = ctx.user().principal().getString("username");
+                    final String asn = getActualASN(ctx, true);
                     final String id = ctx.<RequestParameters>get(ValidationHandler.REQUEST_CONTEXT_KEY)
                             .queryParameter("id").getString();
                     Future.<Peer>future(f -> peerService.getSingle(asn, id, f))
@@ -198,7 +201,7 @@ public class ManageHandler implements ISubRouter {
                         .predicate(RequestPredicate.BODY_REQUIRED)
                         .build())
                 .handler(ctx -> {
-                    final String asn = ctx.user().principal().getString("username");
+                    final String asn = getActualASN(ctx, true);
                     final JsonObject parameters = ctx.<RequestParameters>get(ValidationHandler.REQUEST_CONTEXT_KEY)
                             .body().getJsonObject();
                     final String id = ctx.<RequestParameters>get(ValidationHandler.REQUEST_CONTEXT_KEY)
@@ -291,7 +294,7 @@ public class ManageHandler implements ISubRouter {
                         .queryParameter(param("id", stringSchema()))
                         .build())
                 .handler(ctx -> {
-                    final String asn = ctx.user().principal().getString("username");
+                    final String asn = getActualASN(ctx, true);
                     final String id = ctx.<RequestParameters>get(ValidationHandler.REQUEST_CONTEXT_KEY)
                             .queryParameter("id").getString();
                     Future.<Peer>future(f -> peerService.getSingle(asn, id, f))
@@ -316,7 +319,7 @@ public class ManageHandler implements ISubRouter {
         router.get("/change-password")
                 .produces("text/html")
                 .handler(ctx -> {
-                    final String asn = ctx.user().principal().getString("username");
+                    final String asn = getActualASN(ctx, true);
                     renderChangepw(engine, asn, null, ctx);
                 });
 
@@ -331,7 +334,7 @@ public class ManageHandler implements ISubRouter {
                         .predicate(RequestPredicate.BODY_REQUIRED)
                         .build())
                 .handler(ctx -> {
-                    final String asn = ctx.user().principal().getString("username");
+                    final String asn = getActualASN(ctx, true);
                     final JsonObject parameters = ctx.<RequestParameters>get(ValidationHandler.REQUEST_CONTEXT_KEY)
                             .body().getJsonObject();
                     final String passwd = parameters.getString("passwd");
@@ -369,14 +372,14 @@ public class ManageHandler implements ISubRouter {
         router.get("/delete-account")
                 .produces("text/html")
                 .handler(ctx -> {
-                    final String asn = ctx.user().principal().getString("username");
+                    final String asn = getActualASN(ctx, true);
                     renderDA(engine, asn, null, ctx);
                 });
 
         router.post("/delete-account")
                 .produces("text/html")
                 .handler(ctx -> {
-                    final String asn = ctx.user().principal().getString("username");
+                    final String asn = getActualASN(ctx, true);
                     Future.<Void>future(f -> peerService.existsUnderASN(asn, ar -> {
                         if (ar.succeeded()) {
                             if (ar.result()) {
@@ -414,7 +417,7 @@ public class ManageHandler implements ISubRouter {
                         .queryParameter(param("id", stringSchema()))
                         .build())
                 .handler(ctx -> {
-                    final String asn = ctx.user().principal().getString("username");
+                    final String asn = getActualASN(ctx, true);
                     final String id = ctx.<RequestParameters>get(ValidationHandler.REQUEST_CONTEXT_KEY)
                             .queryParameter("id").getString();
                     Future.<Peer>future(f -> peerService.getSingle(asn, id, f))
@@ -429,5 +432,23 @@ public class ManageHandler implements ISubRouter {
                 });
 
         return router;
+    }
+
+    @Nonnull
+    private String getActualASN(@Nonnull RoutingContext ctx, boolean acceptSudo) {
+        final String authASN = ctx.user().principal().getString("username");
+        if(!acceptSudo) {
+            return authASN;
+        }
+        if(ctx.getCookie(SudoUtils.SUDO_COOKIE) == null) {
+            return authASN;
+        }
+        final Cookie sudoCookie = ctx.getCookie(SudoUtils.SUDO_COOKIE);
+        if(ctx.user().attributes().getBoolean("admin") == null) {
+            // Unauthorized
+            logger.warn("Unauthorized sudo attempt by " + authASN + ", target ASN: " + SudoUtils.getTargetASN(sudoCookie));
+            return authASN;
+        }
+        return SudoUtils.getTargetASN(sudoCookie);
     }
 }

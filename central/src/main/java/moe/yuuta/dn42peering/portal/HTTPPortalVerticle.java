@@ -9,6 +9,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
+import moe.yuuta.dn42peering.admin.AdminHandler;
 import moe.yuuta.dn42peering.asn.ASNHandler;
 import moe.yuuta.dn42peering.manage.ManageHandler;
 
@@ -37,6 +38,7 @@ public class HTTPPortalVerticle extends AbstractVerticle {
                 });
         router.mountSubRouter("/asn", new ASNHandler().mount(vertx));
         router.mountSubRouter("/manage", new ManageHandler().mount(vertx));
+        router.mountSubRouter("/admin", new AdminHandler().mount(vertx));
         router.errorHandler(500, ctx -> {
             if(ctx.failure() instanceof HTTPException) {
                 ctx.response().setStatusCode(((HTTPException) ctx.failure()).code).end();
