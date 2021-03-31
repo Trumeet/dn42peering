@@ -29,20 +29,22 @@ class ManagementProvision {
         // This will cause unnecessary wastes.
         boolean canReload = inPeer.getType() == existingPeer.getType() &&
                 inPeer.getNode() == existingPeer.getNode();
-        // wg-quick does not support switching local IP addresses.
-        // However, switch between link local addresses and real IPv6 addresses require the change of
-        // local v6 address. Therefore, in such cases, we have to do a full re-provision.
+        // wg-quick does not support switching IP addresses.
+        // TODO: Move reload detection to agents.
         if(canReload && // Only check if no other factors prevent us from reloading.
                 inPeer.getType() == Peer.VPNType.WIREGUARD &&
                 existingPeer.getType() == Peer.VPNType.WIREGUARD) {
-            try {
-                final boolean existingLL = existingPeer.isIPv6LinkLocal();
-                final boolean newLL = inPeer.isIPv6LinkLocal();
-                if(existingLL != newLL) {
-                    canReload = false;
-                }
-            } catch (IOException e) {
-                return Future.failedFuture(e);
+            if(!inPeer.getIpv4().equals(existingPeer.getIpv6())) {
+                canReload = false;
+            }
+            if(inPeer.getIpv6() != null && !inPeer.getIpv6().equals(existingPeer.getIpv6())) {
+                try {
+                    // LL addrs does not have anything to do with ifconfig.
+                    if(inPeer.isIPv6LinkLocal() && existingPeer.isIPv6LinkLocal())
+                        canReload = true;
+                    else
+                        canReload = false;
+                } catch (IOException ignored) {}
             }
         }
         // wg-quick will also not clear EndPoint setting if we just reload it.
