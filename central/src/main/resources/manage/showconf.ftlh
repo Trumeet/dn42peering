@@ -34,7 +34,7 @@
     </#if>
     <#if peer_ipv6??>
     protocol bgp dn42_<b>&lt;Custom Name&gt;</b>_v6 from dnpeers {
-        neighbor ${ipv6}<#if peer_link_local><b>%&lt;Your WireGuard interface name&gt</b>;</#if> as ${asn};
+        neighbor ${ipv6}<#if peer_link_local>%<b>&lt;Your WireGuard interface name&gt</b>;</#if> as ${asn};
         direct;
     }
     </#if>
