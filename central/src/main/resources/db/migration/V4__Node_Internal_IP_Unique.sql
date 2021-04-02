@@ -1,0 +1,1 @@
+ALTER TABLE `node` ADD UNIQUE `Internal_IP_Unique` (`internal_ip`);
