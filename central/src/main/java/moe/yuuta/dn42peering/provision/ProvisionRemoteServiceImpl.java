@@ -5,6 +5,8 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.grpc.VertxChannelBuilder;
 import moe.yuuta.dn42peering.agent.proto.NodeConfig;
 import moe.yuuta.dn42peering.agent.proto.VertxAgentGrpc;
@@ -18,6 +20,8 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 class ProvisionRemoteServiceImpl implements IProvisionRemoteService {
+    private final Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
+
     private final Vertx vertx;
     private final INodeService nodeService;
     private final IPeerService peerService;
@@ -38,6 +42,7 @@ class ProvisionRemoteServiceImpl implements IProvisionRemoteService {
     @Override
     public IProvisionRemoteService deploy(long nodeId,
                                           @Nonnull Handler<AsyncResult<Void>> handler) {
+        logger.info("Deploying to " + nodeId);
         vertx.sharedData().getLockWithTimeout("deploy_" + nodeId, 30 * 1000)
                 .<Void>compose(lock -> {
                     return Future.<moe.yuuta.dn42peering.node.Node>future(f -> nodeService.getNode((int)nodeId, f))
@@ -83,6 +88,8 @@ class ProvisionRemoteServiceImpl implements IProvisionRemoteService {
                                 return Future.succeededFuture();
                             });
                 })
+                .onFailure(err -> logger.error("Cannot deploy to " + nodeId, err))
+                .onSuccess(res -> logger.info("Deploy to " + nodeId + " succeed."))
                 .onComplete(handler);
         return this;
     }
