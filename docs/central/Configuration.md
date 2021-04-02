@@ -11,7 +11,8 @@ The configuration format of central is JSON.
     "host": "host.name.or.ip.for.MySQL.database",
     "database": "mysql database",
     "user": "test",
-    "password": "123456"
+    "password": "123456",
+    "migrate": "auto"
   },
   "http": {
     "name": "<Site name> It will appear like <name> dn42 peering."

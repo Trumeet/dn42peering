@@ -6,6 +6,8 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import moe.yuuta.dn42peering.asn.ASNHttpVerticle;
 import moe.yuuta.dn42peering.asn.ASNVerticle;
+import moe.yuuta.dn42peering.database.DatabaseMigration;
+import moe.yuuta.dn42peering.database.DatabaseUtils;
 import moe.yuuta.dn42peering.node.NodeVerticle;
 import moe.yuuta.dn42peering.peer.PeerVerticle;
 import moe.yuuta.dn42peering.portal.HTTPPortalVerticle;
@@ -38,6 +40,30 @@ public class Main {
                 .setConfig(config)
                 .setInstances(Runtime.getRuntime().availableProcessors() * 2);
         Logger logger = LoggerFactory.getLogger("Main");
+        // Migrate database first
+        DatabaseMigration.autoMigrate(vertx, DatabaseUtils.getConfiguration(config))
+                .onComplete(_v -> {
+                    start(vertx, options, res -> {
+                        if (res.succeeded()) {
+                            logger.info("The server started.");
+                        } else {
+                            logger.error("Cannot deploy the server.", res.cause());
+                        }
+                    });
+                })
+                .onFailure(err -> {
+                    if(err instanceof DatabaseMigration.ShutdownException) {
+                        System.exit(0);
+                        return;
+                    }
+                    logger.error("Cannot migrate database.", err);
+                    System.exit(1);
+                });
+    }
+
+    private static void start(@Nonnull Vertx vertx,
+                              @Nonnull DeploymentOptions options,
+                              @Nonnull Handler<AsyncResult<CompositeFuture>> handler) {
         CompositeFuture.all(Arrays.asList(
                 Future.<String>future(f -> vertx.deployVerticle(PeerVerticle.class.getName(), options, f)),
                 Future.<String>future(f -> vertx.deployVerticle(WhoisVerticle.class.getName(), options, f)),
@@ -46,12 +72,6 @@ public class Main {
                 Future.<String>future(f -> vertx.deployVerticle(NodeVerticle.class.getName(), options, f)),
                 Future.<String>future(f -> vertx.deployVerticle(ProvisionVerticle.class.getName(), options, f)),
                 Future.<String>future(f -> vertx.deployVerticle(HTTPPortalVerticle.class.getName(), options, f))
-        )).onComplete(res -> {
-            if (res.succeeded()) {
-                logger.info("The server started.");
-            } else {
-                logger.error("Cannot deploy the server.", res.cause());
-            }
-        });
+        )).onComplete(handler);
     }
 }

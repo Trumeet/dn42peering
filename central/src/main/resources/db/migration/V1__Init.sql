@@ -13,7 +13,6 @@ CREATE TABLE `node` (
   `public_ip` varchar(21) COLLATE utf8mb4_unicode_ci NOT NULL,
   `dn42_ip4` varchar(21) COLLATE utf8mb4_unicode_ci NOT NULL,
   `dn42_ip6` varchar(39) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `dn42_ip6_nonll` varchar(39) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `asn` char(20) COLLATE utf8mb4_unicode_ci NOT NULL,
   `internal_ip` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
   `internal_port` smallint(5) UNSIGNED NOT NULL,
