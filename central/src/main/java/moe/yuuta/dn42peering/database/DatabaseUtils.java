@@ -19,9 +19,24 @@ public final class DatabaseUtils {
             LoggerFactory.getLogger(DatabaseUtils.class.getSimpleName());
 
     @Nonnull
+    public static DatabaseConfiguration getConfiguration(@Nonnull JsonObject config) {
+        return new DatabaseConfiguration(config.getJsonObject("database"));
+    }
+
+    @Nonnull
+    public static DatabaseConfiguration getConfiguration(@Nonnull Vertx vertx) {
+        return getConfiguration(vertx.getOrCreateContext().config());
+    }
+
+    @Nonnull
     public static Pool getPool(@Nonnull Vertx vertx) {
-        final JsonObject json = vertx.getOrCreateContext().config().getJsonObject("database");
-        final MySQLConnectOptions opt = new MySQLConnectOptions(json);
+        final DatabaseConfiguration config = getConfiguration(vertx);
+        final MySQLConnectOptions opt = new MySQLConnectOptions()
+                .setHost(config.host)
+                .setPort(config.port)
+                .setDatabase(config.database)
+                .setUser(config.user)
+                .setPassword(config.password);
         return MySQLPool.pool(vertx, opt, new PoolOptions().setMaxSize(5));
     }
 }
