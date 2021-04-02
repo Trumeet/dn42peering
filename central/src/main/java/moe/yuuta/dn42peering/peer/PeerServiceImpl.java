@@ -3,6 +3,7 @@ package moe.yuuta.dn42peering.peer;
 import io.vertx.core.*;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.mysqlclient.MySQLException;
 import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
@@ -87,19 +88,30 @@ class PeerServiceImpl implements IPeerService {
     @Override
     public IPeerService addNew(@Nonnull Peer peer, @Nonnull Handler<AsyncResult<Long>> handler) {
         peer.setId(0);
-        Future.<RowSet<Peer>>future(f -> SqlTemplate
-                .forQuery(pool, "INSERT INTO peer VALUES (#{id}, #{type}, #{asn}, " +
-                        "#{ipv4}, #{ipv6}, " +
-                        "#{wg_endpoint}, #{wg_endpoint_port}, " +
-                        "#{wg_self_pubkey}, #{wg_self_privkey}, " +
-                        "#{wg_peer_pubkey}, #{wg_preshared_secret}, " +
-                        "#{provision_status}, #{mpbgp}, #{node}" +
-                        ")")
-                .mapFrom(PeerParametersMapper.INSTANCE)
-                .mapTo(PeerRowMapper.INSTANCE)
-                .execute(peer, f))
-                .compose(rows -> Future.succeededFuture(rows.property(DatabaseUtils.LAST_INSERTED_ID)))
-                .onComplete(handler);
+        Future.<Long>future(f -> {
+            Future.<RowSet<Peer>>future(f1 -> SqlTemplate
+                    .forQuery(pool, "INSERT INTO peer VALUES (#{id}, #{type}, #{asn}, " +
+                            "#{ipv4}, #{ipv6}, " +
+                            "#{wg_endpoint}, #{wg_endpoint_port}, " +
+                            "#{wg_self_pubkey}, #{wg_self_privkey}, " +
+                            "#{wg_peer_pubkey}, #{wg_preshared_secret}, " +
+                            "#{provision_status}, #{mpbgp}, #{node}" +
+                            ")")
+                    .mapFrom(PeerParametersMapper.INSTANCE)
+                    .mapTo(PeerRowMapper.INSTANCE)
+                    .execute(peer, f1))
+                    .compose(rows -> Future.succeededFuture(rows.property(DatabaseUtils.LAST_INSERTED_ID)))
+                    .onFailure(err -> {
+                        if (err instanceof MySQLException) {
+                            if (((MySQLException) err).getErrorCode() == 1062 /* Duplicate */) {
+                                f.fail(new DuplicatePeerException());
+                                return;
+                            }
+                            f.fail(err);
+                        }
+                    })
+                    .onSuccess(f::complete);
+        }).onComplete(handler);
         return this;
     }
 

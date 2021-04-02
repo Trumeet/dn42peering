@@ -22,10 +22,12 @@ import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.SchemaRouter;
 import io.vertx.json.schema.SchemaRouterOptions;
 import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
+import io.vertx.serviceproxy.ServiceException;
 import moe.yuuta.dn42peering.admin.SudoUtils;
 import moe.yuuta.dn42peering.asn.IASNService;
 import moe.yuuta.dn42peering.jaba.Pair;
 import moe.yuuta.dn42peering.node.INodeService;
+import moe.yuuta.dn42peering.peer.DuplicatePeerException;
 import moe.yuuta.dn42peering.peer.IPeerService;
 import moe.yuuta.dn42peering.peer.Peer;
 import moe.yuuta.dn42peering.portal.FormException;
@@ -146,7 +148,14 @@ public class ManageHandler implements ISubRouter {
                         if (ar.succeeded()) {
                             peer.setId((int) (long) ar.result());
                             f.complete(peer);
-                        } else f.fail(ar.cause());
+                        } else {
+                            if(((ServiceException)ar.cause()).getDebugInfo().getString("causeName")
+                                    .equals(DuplicatePeerException.class.getName())) {
+                                f.fail(new FormException(peer, "A peer on your chosen node already exists. You can only create one peer per node."));
+                                return;
+                            }
+                            f.fail(ar.cause());
+                        }
                     })))
                             .onSuccess(peer -> {
                                 ctx.response()

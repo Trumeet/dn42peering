@@ -1,0 +1,1 @@
+ALTER TABLE `peer` ADD UNIQUE `Node_ASN_Unique` (`asn`, `node`);
