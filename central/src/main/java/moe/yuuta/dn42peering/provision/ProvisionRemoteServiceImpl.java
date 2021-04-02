@@ -83,9 +83,8 @@ class ProvisionRemoteServiceImpl implements IProvisionRemoteService {
                                         .<Void>compose(reply -> Future.succeededFuture(null))
                                         .onComplete(res -> channel.shutdown());
                             })
-                            .compose(_v -> {
+                            .onComplete(_v -> {
                                 lock.release();
-                                return Future.succeededFuture();
                             });
                 })
                 .onFailure(err -> logger.error("Cannot deploy to " + nodeId, err))
