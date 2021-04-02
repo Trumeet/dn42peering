@@ -17,6 +17,7 @@ public class WhoisVerticle extends AbstractVerticle {
     public void start(Promise<Void> startPromise) throws Exception {
         consumer = new ServiceBinder(vertx)
                 .setAddress(IWhoisService.ADDRESS)
+                .setIncludeDebugInfo(true)
                 .register(IWhoisService.class, IWhoisService.create(vertx));
         consumer.completionHandler(ar -> {
             if(ar.succeeded()) {

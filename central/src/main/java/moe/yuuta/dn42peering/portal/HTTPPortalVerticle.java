@@ -9,6 +9,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
+import io.vertx.serviceproxy.ServiceException;
 import moe.yuuta.dn42peering.admin.AdminHandler;
 import moe.yuuta.dn42peering.asn.ASNHandler;
 import moe.yuuta.dn42peering.manage.ManageHandler;
@@ -42,6 +43,15 @@ public class HTTPPortalVerticle extends AbstractVerticle {
         router.errorHandler(500, ctx -> {
             if(ctx.failure() instanceof HTTPException) {
                 ctx.response().setStatusCode(((HTTPException) ctx.failure()).code).end();
+                return;
+            }
+            if(ctx.failure() instanceof ServiceException) {
+                final JsonObject debugInfo = ((ServiceException) ctx.failure()).getDebugInfo();
+                if(debugInfo != null) {
+                    logger.error("Generic Error: " + debugInfo.encodePrettily(), ctx.failure());
+                } else {
+                    logger.error("Generic Error: No debug info available.", ctx.failure());
+                }
                 return;
             }
             logger.error("Generic Error", ctx.failure());

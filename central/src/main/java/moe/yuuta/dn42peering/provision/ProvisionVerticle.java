@@ -18,6 +18,7 @@ public class ProvisionVerticle extends AbstractVerticle {
     public void start(Promise<Void> startPromise) throws Exception {
         consumer = new ServiceBinder(vertx)
                 .setAddress(IProvisionRemoteService.ADDRESS)
+                .setIncludeDebugInfo(true)
                 .register(IProvisionRemoteService.class, new ProvisionRemoteServiceImpl(vertx));
         consumer.completionHandler(ar -> {
             if(ar.succeeded()) {

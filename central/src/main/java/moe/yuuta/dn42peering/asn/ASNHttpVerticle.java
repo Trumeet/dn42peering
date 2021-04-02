@@ -18,6 +18,7 @@ public class ASNHttpVerticle extends AbstractVerticle {
     public void start(Promise<Void> startPromise) throws Exception {
         consumer = new ServiceBinder(vertx)
                 .setAddress(IASNHttpService.ADDRESS)
+                .setIncludeDebugInfo(true)
                 .register(IASNHttpService.class, new IASNHttpServiceImpl(vertx));
         consumer.completionHandler(ar -> {
             if (ar.succeeded()) {

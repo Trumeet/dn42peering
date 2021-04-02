@@ -27,6 +27,7 @@ public class PeerVerticle extends AbstractVerticle {
 
         consumer = new ServiceBinder(vertx)
                 .setAddress(IPeerService.ADDRESS)
+                .setIncludeDebugInfo(true)
                 .register(IPeerService.class, new PeerServiceImpl(vertx, pool));
         consumer.completionHandler(ar -> {
             if(ar.succeeded()) {

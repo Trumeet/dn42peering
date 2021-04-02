@@ -27,6 +27,7 @@ public class ASNVerticle extends AbstractVerticle {
 
         consumer = new ServiceBinder(vertx)
                 .setAddress(IASNService.ADDRESS)
+                .setIncludeDebugInfo(true)
                 .register(IASNService.class, new ASNServiceImpl(vertx, pool));
         consumer.completionHandler(ar -> {
             if(ar.succeeded()) {

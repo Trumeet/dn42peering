@@ -27,6 +27,7 @@ public class NodeVerticle extends AbstractVerticle {
 
         consumer = new ServiceBinder(vertx)
                 .setAddress(INodeService.ADDRESS)
+                .setIncludeDebugInfo(true)
                 .register(INodeService.class, new NodeServiceImpl(vertx, pool));
         consumer.completionHandler(ar -> {
             if(ar.succeeded()) {
