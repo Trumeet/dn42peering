@@ -18,6 +18,12 @@
     <li>We: Constantly check your connection.</li>
     <li>If you decided to stop peering with us, just login and delete your connection. We will stop connecting with you. The whole process is automated.</li>
 </ol>
+<h2>Peering Policy</h2>
+<ol>
+    <li>DN42 IPv4 is mandatory.</li>
+    <li>Publicly reachable endpoint is optional.</li>
+    <li>WireGuard only.</li>
+</ol>
 <h2>Start peering today!</h2>
 <ol>
     <li>Register your ASN <a href="/asn">Here</a>.</li>
