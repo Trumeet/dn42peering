@@ -257,6 +257,29 @@ public class NodeHandler implements ISubRouter {
                     });
                 });
 
+        router.get("/redeploy")
+                .handler(ValidationHandler
+                        .builder(parser)
+                        .queryParameter(param("id", stringSchema()))
+                        .build())
+                .handler(ctx -> {
+                    final String id = ctx.<RequestParameters>get(ValidationHandler.REQUEST_CONTEXT_KEY)
+                            .queryParameter("id").getString();
+                    int intId;
+                    try {
+                        intId = Integer.parseInt(id);
+                    } catch (NumberFormatException ignored) {
+                        ctx.response().setStatusCode(400).end();
+                        return;
+                    }
+                    provisionRemoteService.deploy(intId, ar -> {
+                        ctx.response()
+                                .setStatusCode(303)
+                                .putHeader("Location", "/admin")
+                                .end();
+                    });
+                });
+
         return router;
     }
 }

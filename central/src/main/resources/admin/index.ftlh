@@ -37,7 +37,8 @@
             ${method}<br />
             </#list>
         </td>
-        <td><a href="/admin/nodes/edit?id=${node.id}">Edit</a></td>
+        <td><a href="/admin/nodes/edit?id=${node.id}">Edit</a><br />
+        <a href="/admin/nodes/redeploy?id=${node.id}">Redeploy</a></td>
     </tr>
     </#list>
 </table>
