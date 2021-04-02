@@ -6,7 +6,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
-import io.vertx.mysqlclient.MySQLPool;
 import io.vertx.sqlclient.*;
 import io.vertx.sqlclient.templates.SqlTemplate;
 import moe.yuuta.dn42peering.utils.PasswordAuthentication;
@@ -24,9 +23,9 @@ class ASNServiceImpl implements IASNService {
     private final Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
 
     private final Vertx vertx;
-    private final MySQLPool pool;
+    private final Pool pool;
 
-    ASNServiceImpl(@Nonnull Vertx vertx, @Nonnull MySQLPool pool) {
+    ASNServiceImpl(@Nonnull Vertx vertx, @Nonnull Pool pool) {
         this.vertx = vertx;
         this.pool = pool;
     }

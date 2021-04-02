@@ -8,22 +8,19 @@ import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
-import io.vertx.mysqlclient.MySQLConnectOptions;
-import io.vertx.mysqlclient.MySQLPool;
 import io.vertx.serviceproxy.ServiceBinder;
-import io.vertx.sqlclient.PoolOptions;
+import io.vertx.sqlclient.Pool;
+import moe.yuuta.dn42peering.database.DatabaseUtils;
 
 public class NodeVerticle extends AbstractVerticle {
     private final Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
 
     private MessageConsumer<JsonObject> consumer;
-    private MySQLPool pool;
+    private Pool pool;
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
-        final JsonObject json = vertx.getOrCreateContext().config().getJsonObject("database");
-        final MySQLConnectOptions opt = new MySQLConnectOptions(json);
-        pool = MySQLPool.pool(vertx, opt, new PoolOptions().setMaxSize(5));
+        pool = DatabaseUtils.getPool(vertx);
 
         consumer = new ServiceBinder(vertx)
                 .setAddress(INodeService.ADDRESS)

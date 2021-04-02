@@ -4,8 +4,10 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.mysqlclient.MySQLPool;
+import io.vertx.sqlclient.Pool;
+import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.templates.SqlTemplate;
+import moe.yuuta.dn42peering.database.DatabaseUtils;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -13,10 +15,10 @@ import java.util.Collections;
 import java.util.List;
 
 class NodeServiceImpl implements INodeService {
-    private final MySQLPool pool;
+    private final Pool pool;
     private final Vertx vertx;
 
-    NodeServiceImpl(@Nonnull Vertx vertx, @Nonnull MySQLPool mySQLPool) {
+    NodeServiceImpl(@Nonnull Vertx vertx, @Nonnull Pool mySQLPool) {
         this.vertx = vertx;
         this.pool = mySQLPool;
     }

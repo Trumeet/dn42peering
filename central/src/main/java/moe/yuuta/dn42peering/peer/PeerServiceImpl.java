@@ -3,12 +3,12 @@ package moe.yuuta.dn42peering.peer;
 import io.vertx.core.*;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
-import io.vertx.mysqlclient.MySQLClient;
+import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
-import io.vertx.sqlclient.SqlClient;
 import io.vertx.sqlclient.SqlResult;
 import io.vertx.sqlclient.templates.SqlTemplate;
+import moe.yuuta.dn42peering.database.DatabaseUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -18,9 +18,9 @@ class PeerServiceImpl implements IPeerService {
     private final Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
 
     private final Vertx vertx;
-    private final SqlClient pool;
+    private final Pool pool;
 
-    PeerServiceImpl(@Nonnull Vertx vertx, @Nonnull SqlClient sql) {
+    PeerServiceImpl(@Nonnull Vertx vertx, @Nonnull Pool sql) {
         this.vertx = vertx;
         this.pool = sql;
     }
@@ -41,6 +41,7 @@ class PeerServiceImpl implements IPeerService {
                     for (Peer peer : peers) peerList.add(peer);
                     return Future.succeededFuture(peerList);
                 })
+                .onFailure(err -> err.printStackTrace())
                 .onComplete(handler);
         return this;
     }
@@ -97,7 +98,7 @@ class PeerServiceImpl implements IPeerService {
                 .mapFrom(PeerParametersMapper.INSTANCE)
                 .mapTo(PeerRowMapper.INSTANCE)
                 .execute(peer, f))
-                .compose(rows -> Future.succeededFuture(rows.property(MySQLClient.LAST_INSERTED_ID)))
+                .compose(rows -> Future.succeededFuture(rows.property(DatabaseUtils.LAST_INSERTED_ID)))
                 .onComplete(handler);
         return this;
     }
