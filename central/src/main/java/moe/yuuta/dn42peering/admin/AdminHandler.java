@@ -20,15 +20,18 @@ import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.SchemaRouter;
 import io.vertx.json.schema.SchemaRouterOptions;
 import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
+import moe.yuuta.dn42peering.admin.nodes.NodeHandler;
 import moe.yuuta.dn42peering.asn.IASNService;
 import moe.yuuta.dn42peering.manage.AdminASNAuthProvider;
+import moe.yuuta.dn42peering.node.INodeService;
+import moe.yuuta.dn42peering.peer.IPeerService;
 import moe.yuuta.dn42peering.portal.ISubRouter;
 
 import javax.annotation.Nonnull;
-
 import java.util.UUID;
 
-import static io.vertx.json.schema.common.dsl.Schemas.*;
+import static io.vertx.json.schema.common.dsl.Schemas.objectSchema;
+import static io.vertx.json.schema.common.dsl.Schemas.stringSchema;
 
 public class AdminHandler implements ISubRouter {
     private final Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
@@ -37,6 +40,8 @@ public class AdminHandler implements ISubRouter {
     @Override
     public Router mount(@Nonnull Vertx vertx) {
         final IASNService asnService = IASNService.createProxy(vertx, IASNService.ADDRESS);
+        final INodeService nodeService = INodeService.createProxy(vertx);
+        final IPeerService peerService = IPeerService.createProxy(vertx);
         final TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx, "ftlh");
 
         final Router router = Router.router(vertx);
@@ -53,7 +58,14 @@ public class AdminHandler implements ISubRouter {
                 .produces("text/html")
                 .handler(ctx -> {
                     final String asn = ctx.user().principal().getString("username");
-                    AdminUI.renderIndex(engine, asn, ctx);
+                    AdminUI.renderIndex(
+                            engine,
+                            asnService,
+                            peerService,
+                            nodeService,
+                            asn,
+                            ctx
+                    );
                 });
 
         router.get("/sudo")
@@ -99,6 +111,7 @@ public class AdminHandler implements ISubRouter {
                     }
                 });
 
+        router.mountSubRouter("/nodes", new NodeHandler().mount(vertx));
         return router;
     }
 }

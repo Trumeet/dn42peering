@@ -151,4 +151,15 @@ class ASNServiceImpl implements IASNService {
                 .onComplete(handler);
         return this;
     }
+
+    @Nonnull
+    @Override
+    public IASNService count(@Nonnull Handler<AsyncResult<Integer>> handler) {
+        SqlTemplate
+                .forQuery(pool, "SELECT COUNT(asn) FROM asn")
+                .execute(null)
+                .compose(rows -> Future.succeededFuture(rows.iterator().next().getInteger(0)))
+                .onComplete(handler);
+        return this;
+    }
 }

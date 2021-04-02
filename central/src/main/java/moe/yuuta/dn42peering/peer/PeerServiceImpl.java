@@ -139,7 +139,7 @@ class PeerServiceImpl implements IPeerService {
                     .execute(params, f))
                     .compose(rows -> Future.succeededFuture(rows.iterator().next().getInteger(0) > 0)));
         }
-        if(futures.isEmpty()) {
+        if (futures.isEmpty()) {
             Future.succeededFuture(false).onComplete(handler);
             return this;
         }
@@ -173,7 +173,7 @@ class PeerServiceImpl implements IPeerService {
                 .mapTo(PeerRowMapper.INSTANCE)
                 .execute(params, f))
                 .compose(peers -> {
-                    if(peers.iterator().hasNext())
+                    if (peers.iterator().hasNext())
                         return Future.succeededFuture(peers.iterator().next());
                     return Future.succeededFuture(null);
                 })
@@ -190,8 +190,8 @@ class PeerServiceImpl implements IPeerService {
         Future.<SqlResult<Void>>future(f -> SqlTemplate
                 .forUpdate(pool, "DELETE FROM peer WHERE id = #{id} AND asn = #{asn}")
                 .execute(params, f))
-        .<Void>compose(voidSqlResult -> Future.succeededFuture(null))
-        .onComplete(handler);
+                .<Void>compose(voidSqlResult -> Future.succeededFuture(null))
+                .onComplete(handler);
         return this;
     }
 
@@ -205,6 +205,37 @@ class PeerServiceImpl implements IPeerService {
                 .forUpdate(pool, "UPDATE peer SET provision_status = #{provision_status} WHERE id = #{id}")
                 .execute(params)
                 .compose(res -> Future.<Void>succeededFuture(null))
+                .onComplete(handler);
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public IPeerService count(@Nonnull Handler<AsyncResult<Integer>> handler) {
+        SqlTemplate
+                .forQuery(pool, "SELECT COUNT(id) FROM peer")
+                .execute(null)
+                .compose(rows -> Future.succeededFuture(rows.iterator().next().getInteger(0)))
+                .onComplete(handler);
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public IPeerService listUnderNode(long nodeId, @Nonnull Handler<AsyncResult<List<Peer>>> handler) {
+        SqlTemplate
+                .forQuery(pool, "SELECT id, type, asn, ipv4, ipv6, " +
+                        "wg_endpoint, wg_endpoint_port, " +
+                        "wg_self_pubkey, wg_self_privkey, wg_peer_pubkey, wg_preshared_secret, " +
+                        "provision_status, mpbgp, node FROM peer " +
+                        "WHERE node = #{node}")
+                .mapTo(PeerRowMapper.INSTANCE)
+                .execute(Collections.singletonMap("node", nodeId))
+                .compose(peers -> {
+                    final List<Peer> peerList = new ArrayList<>();
+                    for (Peer peer : peers) peerList.add(peer);
+                    return Future.succeededFuture(peerList);
+                })
                 .onComplete(handler);
         return this;
     }

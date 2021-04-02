@@ -25,4 +25,16 @@ public interface INodeService {
     @Fluent
     @Nonnull
     INodeService getNode(int id, @Nonnull Handler<AsyncResult<Node>> handler);
+
+    @Fluent
+    @Nonnull
+    INodeService addNew(@Nonnull Node node, @Nonnull Handler<AsyncResult<Long>> handler);
+
+    @Fluent
+    @Nonnull
+    INodeService updateTo(@Nonnull Node node, @Nonnull Handler<AsyncResult<Long>> handler);
+
+    @Fluent
+    @Nonnull
+    INodeService delete(int id, @Nonnull Handler<AsyncResult<Void>> handler);
 }

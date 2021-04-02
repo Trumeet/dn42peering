@@ -49,4 +49,8 @@ public interface IASNService {
     @Fluent
     @Nonnull
     IASNService lookupEmails(@Nonnull WhoisObject asn, @Nonnull Handler<AsyncResult<List<String>>> handler);
+
+    @Fluent
+    @Nonnull
+    IASNService count(@Nonnull Handler<AsyncResult<Integer>> handler);
 }

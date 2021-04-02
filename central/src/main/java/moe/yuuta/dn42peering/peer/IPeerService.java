@@ -50,4 +50,13 @@ public interface IPeerService {
     @Fluent
     @Nonnull
     IPeerService changeProvisionStatus(int id, @Nonnull ProvisionStatus provisionStatus, @Nonnull Handler<AsyncResult<Void>> handler);
+
+    @Fluent
+    @Nonnull
+    IPeerService count(@Nonnull Handler<AsyncResult<Integer>> handler);
+
+    @Fluent
+    @Nonnull
+    IPeerService listUnderNode(long nodeId,
+                               @Nonnull Handler<AsyncResult<List<Peer>>> handler);
 }
