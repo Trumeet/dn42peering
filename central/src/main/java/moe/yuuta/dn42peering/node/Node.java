@@ -1,17 +1,13 @@
 package moe.yuuta.dn42peering.node;
 
-import io.grpc.ManagedChannel;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.format.SnakeCase;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.grpc.VertxChannelBuilder;
 import io.vertx.sqlclient.templates.annotations.Column;
 import io.vertx.sqlclient.templates.annotations.ParametersMapped;
 import io.vertx.sqlclient.templates.annotations.RowMapped;
 import io.vertx.sqlclient.templates.annotations.TemplateParameter;
-import moe.yuuta.dn42peering.provision.NodeCommon;
 import moe.yuuta.dn42peering.peer.Peer;
 
 import javax.annotation.Nonnull;
@@ -108,13 +104,13 @@ public class Node {
 
     @GenIgnore
     @Nonnull
-    public NodeCommon toRPCNode() {
-        return new NodeCommon(id,
-                dn42Ip4,
-                dn42Ip6,
-                dn42Ip6NonLL,
-                internalIp,
-                internalPort);
+    public moe.yuuta.dn42peering.agent.proto.Node.Builder toRPCNode() {
+        return moe.yuuta.dn42peering.agent.proto.Node.newBuilder()
+                .setAsn(Long.parseLong(getAsn().substring(2)))
+                .setId(getId())
+                .setIpv4(getDn42Ip4())
+                .setIpv6(getDn42Ip6())
+                .setIpv6NonLL(getDn42Ip6NonLL());
     }
 
     // BEGIN GETTER / SETTER

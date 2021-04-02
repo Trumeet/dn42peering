@@ -6,42 +6,39 @@ option java_outer_classname = "AgentProto";
 package moe.yuuta.dn42peering.agent;
 
 service Agent {
- rpc ProvisionBGP (BGPRequest) returns (BGPReply) {}
- rpc ReloadBGP (BGPRequest) returns (BGPReply) {}
- rpc DeleteBGP (BGPRequest) returns (BGPReply) {}
-
- rpc ProvisionWG (WGRequest) returns (WGReply) {}
- rpc ReloadWG (WGRequest) returns (WGReply) {}
- rpc DeleteWG (WGRequest) returns (WGReply) {}
+ rpc Deploy (NodeConfig) returns (DeployResult) {}
 }
 
-message BGPRequest {
+message DeployResult {
+ repeated uint64 successfulIDs = 1;
+ repeated uint64 failedIDs = 2;
+}
+
+message NodeConfig {
  Node node = 1;
- uint64 id = 2;
- string asn = 3;
- bool mpbgp = 4;
- string ipv4 = 5;
- string ipv6 = 6;
- string device = 7;
+ repeated BGPConfig bgps = 2;
+ repeated WireGuardConfig wgs = 3;
 }
 
-message BGPReply {
+message BGPConfig {
+ uint64 id = 1;
+ uint64 asn = 2;
+ bool mpbgp = 3;
+ string ipv4 = 4;
+ string ipv6 = 5;
+ string interface = 6;
 }
 
-message WGRequest {
- Node node = 1;
- uint64 id = 2;
- uint32 listenPort = 3;
- string endpoint = 4;
- string peerPubKey = 5;
- string selfPrivKey = 6;
- string selfPresharedSecret = 7;
- string peerIPv4 = 8;
- string peerIPv6 = 9;
-}
-
-message WGReply {
- string device = 1;
+message WireGuardConfig {
+ uint64 id = 1;
+ uint32 listenPort = 2;
+ string endpoint = 3;
+ string peerPubKey = 4;
+ string selfPrivKey = 5;
+ string selfPresharedSecret = 6;
+ string peerIPv4 = 7;
+ string peerIPv6 = 8;
+ string interface = 9;
 }
 
 message Node {
@@ -49,4 +46,5 @@ message Node {
  string ipv4 = 2;
  string ipv6 = 3;
  string ipv6NonLL = 4;
+ uint64 asn = 5;
 }

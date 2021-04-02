@@ -36,12 +36,12 @@ import moe.yuuta.dn42peering.whois.IWhoisService;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 import static io.vertx.ext.web.validation.builder.Parameters.param;
 import static io.vertx.json.schema.common.dsl.Schemas.*;
 import static moe.yuuta.dn42peering.manage.ManagementUI.*;
-import static moe.yuuta.dn42peering.manage.ManagementProvision.*;
 
 public class ManageHandler implements ISubRouter {
     private final Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
@@ -153,8 +153,7 @@ public class ManageHandler implements ISubRouter {
                                         .setStatusCode(303)
                                         .putHeader("Location", "/manage")
                                         .end();
-                                provisionPeer(nodeService, provisionService, peer).onComplete(ar ->
-                                        handleProvisionResult(peerService, peer, ar));
+                                provisionService.deploy(peer.getNode(), ar -> {});
                             })
                             .onFailure(err -> {
                                 if (err instanceof FormException) {
@@ -261,8 +260,8 @@ public class ManageHandler implements ISubRouter {
                                         .end();
                                 final Peer existingPeer = pair.a;
                                 final Peer inPeer = pair.b;
-                                reloadPeer(nodeService, provisionService, existingPeer, inPeer).onComplete(ar ->
-                                        handleProvisionResult(peerService, inPeer, ar));
+                                provisionService.deploy(existingPeer.getNode(), ar -> {});
+                                provisionService.deploy(inPeer.getNode(), ar -> {});
                             })
                             .onFailure(err -> {
                                 if (err instanceof FormException) {
@@ -304,12 +303,15 @@ public class ManageHandler implements ISubRouter {
                                 }
                                 return Future.succeededFuture(peer);
                             })
-                            .compose(peer -> unprovisionPeer(nodeService, provisionService, peer))
-                            .compose(_v -> Future.<Void>future(f -> peerService.deletePeer(asn, id, f)))
-                            .onSuccess(_id -> ctx.response()
-                                    .setStatusCode(303)
-                                    .putHeader("Location", "/manage")
-                                    .end())
+                            .compose(peer -> Future.<Void>future(f -> peerService.deletePeer(asn, id, f))
+                            .compose(_v1 -> Future.succeededFuture(peer)))
+                            .onSuccess(peer -> {
+                                ctx.response()
+                                        .setStatusCode(303)
+                                        .putHeader("Location", "/manage")
+                                        .end();
+                                provisionService.deploy(peer.getNode(), ar -> {});
+                            })
                             .onFailure(err -> {
                                 if(!(err instanceof HTTPException)) logger.error("Cannot delete peer.", err);
                                 ctx.fail(err);

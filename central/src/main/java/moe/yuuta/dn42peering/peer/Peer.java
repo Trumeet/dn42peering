@@ -10,8 +10,8 @@ import io.vertx.sqlclient.templates.annotations.Column;
 import io.vertx.sqlclient.templates.annotations.ParametersMapped;
 import io.vertx.sqlclient.templates.annotations.RowMapped;
 import io.vertx.sqlclient.templates.annotations.TemplateParameter;
-import moe.yuuta.dn42peering.provision.BGPRequestCommon;
-import moe.yuuta.dn42peering.provision.WGRequestCommon;
+import moe.yuuta.dn42peering.agent.proto.BGPConfig;
+import moe.yuuta.dn42peering.agent.proto.WireGuardConfig;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -191,31 +191,40 @@ public class Peer {
     public boolean isIPv6LinkLocal() throws IOException {
         return Inet6Address.getByName(ipv6).isLinkLocalAddress();
     }
-    
+
+    @Nonnull
     @GenIgnore
-    public WGRequestCommon toWGRequest() {
-        return new WGRequestCommon(
-                null,
-                (long)id,
-                Integer.parseInt(calcWireGuardPort()),
-                wgEndpoint == null && wgEndpointPort == null ? "" :
-                        String.format("%s:%d", getWgEndpoint(), getWgEndpointPort()),
-                wgPeerPubkey,
-                wgSelfPrivKey,
-                wgPresharedSecret,
-                ipv4,
-                ipv6 == null ? "" : ipv6);
+    public WireGuardConfig toWireGuardConfig() {
+        if(type != VPNType.WIREGUARD) throw new IllegalStateException("The VPN type is not WireGuard.");
+        return WireGuardConfig.newBuilder()
+                .setId(id)
+                .setListenPort(Integer.parseInt(calcWireGuardPort()))
+                .setEndpoint(wgEndpoint == null && wgEndpointPort == null ? "" :
+                        String.format("%s:%d", getWgEndpoint(), getWgEndpointPort()))
+                .setPeerPubKey(wgPeerPubkey)
+                .setSelfPrivKey(wgSelfPrivKey)
+                .setSelfPresharedSecret(wgPresharedSecret)
+                .setPeerIPv4(ipv4)
+                .setPeerIPv6(ipv6 == null ? "" : ipv6)
+                .setInterface(calculateWireGuardInterfaceName())
+                .build();
     }
     
     @GenIgnore
-    public BGPRequestCommon toBGPRequest() {
-        return new BGPRequestCommon(null,
-                (long)id,
-                asn,
-                mpbgp,
-                ipv4,
-                ipv6 == null ? "" : ipv6,
-                null);
+    public BGPConfig toBGPConfig() {
+        return BGPConfig.newBuilder()
+                .setId(id)
+                .setAsn(Long.parseLong(asn.substring(2)))
+                .setMpbgp(mpbgp)
+                .setIpv4(ipv4)
+                .setIpv6(ipv6 == null ? "" : ipv6)
+                .setInterface(calculateWireGuardInterfaceName())
+                .build();
+    }
+
+    @Nonnull
+    public String calculateWireGuardInterfaceName() {
+        return String.format("wg_%d", id);
     }
 
     // START GETTERS / SETTERS

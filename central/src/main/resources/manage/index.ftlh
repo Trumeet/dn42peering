@@ -14,14 +14,12 @@
     <tr>
         <th>IP</th>
         <th>Method</th>
-        <th>Provision</th>
         <th>Actions</th>
     </tr>
     <#list peers as peer>
     <tr>
         <td>${peer.ipv4}<#if peer.ipv6??><br />${peer.ipv6}</#if></td>
         <td>${peer.type}</td>
-        <td>${peer.provisionStatus}</td>
         <td><a href="/manage/edit?id=${peer.id}">Edit</a> |
         <a href="/manage/show-configuration?id=${peer.id}">Example Conf</a></td>
     </tr>
