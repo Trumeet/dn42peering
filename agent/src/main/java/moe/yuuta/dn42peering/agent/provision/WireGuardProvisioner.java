@@ -70,17 +70,6 @@ public class WireGuardProvisioner implements IProvisioner<WireGuardConfig> {
     }
 
     @Nullable
-    private WireGuardConfig searchDesiredConfig(@Nonnull List<WireGuardConfig> configs,
-                                        @Nonnull String device) {
-        // TODO: Optimize algorithm
-        for (final WireGuardConfig config : configs) {
-            if(config.getInterface().equals(device))
-                return config;
-        }
-        return null;
-    }
-
-    @Nullable
     private Address searchActualAddress(@Nonnull List<Address> addresses,
                                         @Nonnull String device) {
         // TODO: Optimize algorithm
@@ -209,15 +198,6 @@ public class WireGuardProvisioner implements IProvisioner<WireGuardConfig> {
                         } catch (IOException e) {
                             return Future.failedFuture(e);
                         }
-                    }
-                    // Detect interfaces to delete
-                    for (final Address address : addrs) {
-                        if(!address.getLinkType().equals("none") ||
-                                !address.getIfname().matches("wg_.*")) {
-                            continue;
-                        }
-                        if(searchDesiredConfig(allDesired, address.getIfname()) == null)
-                            ipCommands.add(String.join(" ", IP.Link.del(address.getIfname())));
                     }
                     final List<Change> changes = new ArrayList<>();
                     if(!ipCommands.isEmpty()) {

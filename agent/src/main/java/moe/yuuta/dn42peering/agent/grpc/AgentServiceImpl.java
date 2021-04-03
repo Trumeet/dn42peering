@@ -9,6 +9,7 @@ import moe.yuuta.dn42peering.agent.proto.NodeConfig;
 import moe.yuuta.dn42peering.agent.proto.VertxAgentGrpc;
 import moe.yuuta.dn42peering.agent.provision.BGPProvisioner;
 import moe.yuuta.dn42peering.agent.provision.Change;
+import moe.yuuta.dn42peering.agent.provision.WireGuardCleanupProvisioner;
 import moe.yuuta.dn42peering.agent.provision.WireGuardProvisioner;
 
 import javax.annotation.Nonnull;
@@ -40,6 +41,7 @@ class AgentServiceImpl extends VertxAgentGrpc.AgentVertxImplBase {
         logger.info("Deployment started");
         final BGPProvisioner bgpProvisioner = new BGPProvisioner(vertx);
         final WireGuardProvisioner wireGuardProvisioner = new WireGuardProvisioner(vertx);
+        final WireGuardCleanupProvisioner wireGuardCleanupProvisioner = new WireGuardCleanupProvisioner(vertx);
 
         // TODO: Currently all provisioning operations are non-fault-tolering. This means that
         // TODO: if one operation fails, the following will fail. This may be changed in later.
@@ -49,6 +51,8 @@ class AgentServiceImpl extends VertxAgentGrpc.AgentVertxImplBase {
                 .compose(this::chainChanges)
                 .compose(_v -> wireGuardProvisioner.calculateChanges(config.getNode(), config.getWgsList())
                 .compose(this::chainChanges))
+                .compose(_v -> wireGuardCleanupProvisioner.calculateChanges(config.getNode(), config.getWgsList())
+                        .compose(this::chainChanges))
                 .onSuccess(res -> logger.info("Deployment finished. Detailed log can be traced above."))
                 .onFailure(err -> logger.error("Deployment failed. Detailed log can be traced above.", err))
                 .compose(compositeFuture -> Future.succeededFuture(null));
