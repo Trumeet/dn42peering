@@ -20,8 +20,8 @@
     <tr>
         <td>${peer.ipv4}<#if peer.ipv6??><br />${peer.ipv6}</#if></td>
         <td>${peer.type}</td>
-        <td><a href="/manage/edit?id=${peer.id}">Edit</a> |
-        <a href="/manage/show-configuration?id=${peer.id}">Example Conf</a></td>
+        <td><a href="/manage/edit?id=${peer.id}">Edit</a><br />
+        <a href="/manage/show-configuration?id=${peer.id}">Sample Configuration</a></td>
     </tr>
     </#list>
 </table>
