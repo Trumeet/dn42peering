@@ -23,6 +23,7 @@
     <li>DN42 IPv4 is mandatory.</li>
     <li>Publicly reachable endpoint is optional.</li>
     <li>WireGuard only.</li>
+    <li>Each ASN may only establish one peer with each individual node.</li>
 </ol>
 <h2>Start peering today!</h2>
 <ol>
