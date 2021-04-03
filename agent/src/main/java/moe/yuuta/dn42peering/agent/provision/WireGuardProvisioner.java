@@ -48,7 +48,7 @@ public class WireGuardProvisioner implements IProvisioner<WireGuardConfig> {
         return Future.succeededFuture(actualNames.stream()
                 .flatMap(string -> {
                     return Arrays.stream(new Change[]{
-                            new CommandChange(new String[]{"systemctl", "disable", "--now", "-q", "wg-quick@" + string}),
+                            new CommandChange(new String[]{"systemctl", "disable", "--now", "-q", "wg-quick@" + string.replace(".conf", ".service")}),
                             new FileChange("/etc/wireguard/" + string, null, FileChange.Action.DELETE.toString())
                     });
                 })
