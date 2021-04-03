@@ -31,7 +31,7 @@ public class FileChange extends Change {
     public Future<Void> execute(@Nonnull Vertx vertx) {
         switch (Action.valueOf(action)) {
             case CREATE_AND_WRITE:
-                logger.info("Writing " + id + " with:\n" + to);
+                logger.info("Writing " + id);
                 return vertx.fileSystem().open(id, new OpenOptions()
                         .setCreateNew(true)
                         .setTruncateExisting(true)
@@ -44,7 +44,7 @@ public class FileChange extends Change {
                             return asyncFile.close();
                         });
             case OVERWRITE:
-                logger.info("Overwriting " + id + " with:\n" + to);
+                logger.info("Overwriting " + id);
                 return vertx.fileSystem().open(id, new OpenOptions()
                         .setCreateNew(false)
                         .setTruncateExisting(true)

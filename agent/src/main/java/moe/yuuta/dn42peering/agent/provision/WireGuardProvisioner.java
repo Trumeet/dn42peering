@@ -4,19 +4,22 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.file.FileSystemException;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
+import moe.yuuta.dn42peering.agent.ip.AddrInfoItem;
+import moe.yuuta.dn42peering.agent.ip.Address;
+import moe.yuuta.dn42peering.agent.ip.IP;
+import moe.yuuta.dn42peering.agent.ip.IPOptions;
 import moe.yuuta.dn42peering.agent.proto.Node;
 import moe.yuuta.dn42peering.agent.proto.WireGuardConfig;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.Inet6Address;
-import java.nio.file.NoSuchFileException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,7 +34,7 @@ public class WireGuardProvisioner implements IProvisioner<WireGuardConfig> {
     }
 
     public WireGuardProvisioner(@Nonnull TemplateEngine engine,
-                          @Nonnull Vertx vertx) {
+                                @Nonnull Vertx vertx) {
         this.engine = engine;
         this.vertx = vertx;
     }
@@ -42,28 +45,10 @@ public class WireGuardProvisioner implements IProvisioner<WireGuardConfig> {
         final List<String> actualNames = Arrays.stream(actualNamesRaw == null ? new String[]{} : actualNamesRaw)
                 .sorted()
                 .collect(Collectors.toList());
-        final String[] desiredNames = allDesired
-                .stream()
-                .map(desired -> generateWGPath(desired.getInterface()))
-                .sorted()
-                .collect(Collectors.toList())
-                .toArray(new String[]{});
-        final List<Integer> toRemove = new ArrayList<>(actualNames.size());
-        for (int i = 0; i < desiredNames.length; i ++) {
-            toRemove.clear();
-            for(int j = 0; j < actualNames.size(); j ++) {
-                if(("/etc/wireguard/" + actualNames.get(j)).equals(desiredNames[i])) {
-                    toRemove.add(j);
-                }
-            }
-            for (int j = 0; j < toRemove.size(); j ++) {
-                actualNames.remove(toRemove.get(j).intValue());
-            }
-        }
         return Future.succeededFuture(actualNames.stream()
                 .flatMap(string -> {
-                    return Arrays.stream(new Change[] {
-                            new CommandChange(new String[]{ "systemctl", "disable", "--now", "-q", "wg-quick@" + string }),
+                    return Arrays.stream(new Change[]{
+                            new CommandChange(new String[]{"systemctl", "disable", "--now", "-q", "wg-quick@" + string}),
                             new FileChange("/etc/wireguard/" + string, null, FileChange.Action.DELETE.toString())
                     });
                 })
@@ -71,50 +56,12 @@ public class WireGuardProvisioner implements IProvisioner<WireGuardConfig> {
     }
 
     @Nonnull
-    private static String generateWGPath(@Nonnull String iif) {
-        return String.format("/etc/wireguard/%s.conf", iif);
-    }
-
-    @Nonnull
-    private Future<Buffer> readConfig(@Nonnull String iif) {
-        return Future.future(f -> {
-            vertx.fileSystem()
-                    .readFile(generateWGPath(iif))
-                    .onFailure(err -> {
-                        if(err instanceof FileSystemException &&
-                                err.getCause() instanceof NoSuchFileException) {
-                            f.complete(null);
-                        } else {
-                            f.fail(err);
-                        }
-                    })
-                    .onSuccess(f::complete);
-        });
-    }
-
-    @Nonnull
-    private Future<Buffer> renderConfig(@Nonnull Node node, @Nonnull WireGuardConfig config) {
-        final Map<String, Object> params = new HashMap<>(9);
+    private Future<Buffer> renderConfig(@Nonnull WireGuardConfig config) {
+        final Map<String, Object> params = new HashMap<>(5);
         params.put("listen_port", config.getListenPort());
         params.put("self_priv_key", config.getSelfPrivKey());
-        params.put("dev", config.getInterface());
-        params.put("self_ipv4", node.getIpv4());
-        params.put("peer_ipv4", config.getPeerIPv4());
-        if (!config.getPeerIPv6().equals("")) {
-            params.put("peer_ipv6", config.getPeerIPv6());
-            try {
-                final boolean ll = Inet6Address.getByName(config.getPeerIPv6()).isLinkLocalAddress();
-                params.put("peer_ipv6_ll", ll);
-                if(ll)
-                    params.put("self_ipv6", node.getIpv6());
-                else
-                    params.put("self_ipv6", node.getIpv6NonLL());
-            } catch (IOException e) {
-                return Future.failedFuture(e);
-            }
-        }
         params.put("preshared_key", config.getSelfPresharedSecret());
-        if(!config.getEndpoint().equals("")) {
+        if (!config.getEndpoint().equals("")) {
             params.put("endpoint", config.getEndpoint());
         }
         params.put("peer_pub_key", config.getPeerPubKey());
@@ -122,78 +69,200 @@ public class WireGuardProvisioner implements IProvisioner<WireGuardConfig> {
         return engine.render(params, "wg.conf.ftlh");
     }
 
+    @Nullable
+    private WireGuardConfig searchDesiredConfig(@Nonnull List<WireGuardConfig> configs,
+                                        @Nonnull String device) {
+        // TODO: Optimize algorithm
+        for (final WireGuardConfig config : configs) {
+            if(config.getInterface().equals(device))
+                return config;
+        }
+        return null;
+    }
+
+    @Nullable
+    private Address searchActualAddress(@Nonnull List<Address> addresses,
+                                        @Nonnull String device) {
+        // TODO: Optimize algorithm
+        for (final Address address : addresses) {
+            if(address.getIfname().equals(device))
+                return address;
+        }
+        return null;
+    }
+
     @Nonnull
-    private Future<List<Change>> calculateSingleConfigChange(@Nonnull Node node,
-                                                             @Nonnull WireGuardConfig desiredConfig) {
-        return CompositeFuture.all(readConfig(desiredConfig.getInterface()), renderConfig(node, desiredConfig))
-                .compose(future -> {
-                    final Buffer actualBuff = future.resultAt(0);
-                    final String actual = actualBuff == null ? null : actualBuff.toString();
-                    final String desired = future.resultAt(1).toString();
-                    final List<Change> changes = new ArrayList<>(1);
-                    if(actual == null) {
-                        changes.add(new FileChange(generateWGPath(desiredConfig.getInterface()),
-                                desired,
-                                FileChange.Action.CREATE_AND_WRITE.toString()));
-                        changes.add(
-                                new CommandChange(new String[] { "systemctl",
-                                        "enable",
-                                        "--now",
-                                        "-q",
-                                        "wg-quick@" + desiredConfig.getInterface() }));
-                    } else if(!actual.equals(desired)) {
-                        // TODO: Smart reloading / restarting
-                        changes.add(new FileChange(generateWGPath(desiredConfig.getInterface()),
-                                desired,
-                                FileChange.Action.OVERWRITE.toString()));
-                        changes.add(
-                                new CommandChange(new String[] { "systemctl",
-                                        "restart",
-                                        "-q",
-                                        "wg-quick@" + desiredConfig.getInterface() }));
+    private List<String> calculateSingleNetlinkChanges(@Nonnull Node node,
+                                                       @Nonnull WireGuardConfig desired,
+                                                       @Nullable Address actual) throws IOException {
+        final boolean linkLocal =
+                !desired.getPeerIPv6().isEmpty() &&
+                        Inet6Address.getByName(desired.getPeerIPv6()).isLinkLocalAddress();
+
+        final boolean desireIP6 = !desired.getPeerIPv6().isEmpty();
+        final boolean needCreateInterface = actual == null;
+        final boolean needCreateAddrs;
+        final boolean needUp;
+
+        if(actual == null) {
+            needCreateAddrs = true;
+            needUp = true;
+        } else {
+            needUp = !actual.getOperstate().equals("UP") &&
+            !actual.getOperstate().equals("UNKNOWN");
+            AddrInfoItem actualIP4 = null;
+            AddrInfoItem actualIP6 = null;
+            boolean excessiveIPs = false;
+            for (final AddrInfoItem item : actual.getAddrInfo()) {
+                switch (item.getFamily()) {
+                    case "inet":
+                        if(actualIP4 != null) {
+                            excessiveIPs = true;
+                            break;
+                        } else {
+                            actualIP4 = item;
+                        }
+                        break;
+                    case "inet6":
+                        if(actualIP6 != null) {
+                            excessiveIPs = true;
+                            break;
+                        } else {
+                            actualIP6 = item;
+                        }
+                        break;
+                    default:
+                        excessiveIPs = true;
+                        break;
+                }
+            }
+            if(excessiveIPs || actualIP4 == null || (desireIP6 && actualIP6 == null) ||
+                    (!desireIP6 && actualIP6 != null)) {
+                logger.info("Recreating addresses for " + desired.getId() + " since there are extra addresses or necessary addresses cannot be found.");
+                needCreateAddrs = true;
+            } else {
+                boolean needCreateIP4Addr =
+                        actualIP4.getPrefixlen() != 32 ||
+                                !node.getIpv4().equals(actualIP4.getLocal()) ||
+                                !desired.getPeerIPv4().equals(actualIP4.getAddress());
+                boolean needCreateIP6Addr = false;
+                if(desireIP6) {
+                    needCreateIP6Addr =
+                            actualIP6.getPrefixlen() != (linkLocal ? 64 : 128) ||
+                                    !(linkLocal ? node.getIpv6() : node.getIpv6NonLL()).equals(actualIP6.getLocal()) ||
+                                    (linkLocal ? (actualIP6.getAddress() != null) :
+                                            !desired.getPeerIPv6().equals(actualIP6.getAddress()));
+                    if(needCreateIP6Addr) {
+                        logger.info("IPv6 addresses for " + desired.getId() + " is outdated.\n" +
+                                "Prefixes match: " + (actualIP6.getPrefixlen() == (linkLocal ? 64 : 128)) + "\n" +
+                                "Local addresses match: " + ((linkLocal ? node.getIpv6() : node.getIpv6NonLL()).equals(actualIP6.getLocal())) + "\n" +
+                                "Peer addresses match: " + (linkLocal ? (actualIP6.getAddress() == null) :
+                                desired.getPeerIPv6().equals(actualIP6.getAddress())));
+                    }
+                }
+                needCreateAddrs = needCreateIP4Addr || needCreateIP6Addr;
+                if(needCreateAddrs)
+                    logger.info("Recreating addresses for " + desired.getId() +
+                            " since IPv4 or IPv6 information is updated: " + needCreateIP4Addr + ", " + needCreateIP6Addr + ".");
+            }
+        }
+
+        final List<List<String>> changes = new ArrayList<>();
+        if(needCreateInterface)
+            changes.add(IP.Link.add(desired.getInterface(), "wireguard"));
+        if(needCreateAddrs) {
+            changes.add(IP.Addr.flush(desired.getInterface()));
+            changes.add(IP.Addr.add(node.getIpv4() + "/32",
+                    desired.getInterface(),
+                    desired.getPeerIPv4() + "/32"));
+            if(!desired.getPeerIPv6().isEmpty()) {
+                if(linkLocal)
+                    changes.add(IP.Addr.add(node.getIpv6() + "/64",
+                            desired.getInterface(),
+                            null));
+                else
+                    changes.add(IP.Addr.add(node.getIpv6NonLL() + "/128",
+                            desired.getInterface(),
+                            desired.getPeerIPv6() + "/128"));
+            }
+        }
+        if(needUp)
+            changes.add(IP.Link.set(desired.getInterface(), "up"));
+        return changes
+                .stream().map(cmd -> String.join(" ", cmd))
+                .collect(Collectors.toList());
+    }
+
+    @Nonnull
+    private Future<List<Change>> calculateTotalNetlinkChanges(@Nonnull Node node,
+                                           @Nonnull List<WireGuardConfig> allDesired) {
+        return IP.ip(vertx, new IPOptions(), IP.Addr.show(null))
+                .compose(IP.Addr::handler)
+                .compose(addrs -> {
+                    final List<String> ipCommands = new ArrayList<>();
+                    for (final WireGuardConfig desired : allDesired) {
+                        final Address actual = searchActualAddress(addrs, desired.getInterface());
+                        try {
+                            ipCommands.addAll(calculateSingleNetlinkChanges(node,
+                                    desired,
+                                    actual));
+                        } catch (IOException e) {
+                            return Future.failedFuture(e);
+                        }
+                    }
+                    // Detect interfaces to delete
+                    for (final Address address : addrs) {
+                        if(!address.getLinkType().equals("none") ||
+                                !address.getIfname().matches("wg_.*")) {
+                            continue;
+                        }
+                        if(searchDesiredConfig(allDesired, address.getIfname()) == null)
+                            ipCommands.add(String.join(" ", IP.Link.del(address.getIfname())));
+                    }
+                    final List<Change> changes = new ArrayList<>();
+                    if(!ipCommands.isEmpty()) {
+                        changes.add(new IPChange(true, ipCommands));
                     }
                     return Future.succeededFuture(changes);
                 });
     }
 
     @Nonnull
-    private Future<List<Change>> calculateSingleServiceStatusChange(@Nonnull WireGuardConfig desiredConfig) {
-        // Check if the service is not started or in wrong state.
-        return AsyncShell.exec(vertx, "systemctl", "is-active", "wg-quick@" + desiredConfig.getInterface())
-                .compose(res -> {
-                    if(res == 0) {
-                        return Future.succeededFuture(Collections.emptyList());
+    private Future<List<Change>> calculateTotalWireGuardChanges(@Nonnull Node node,
+                                                              @Nonnull List<WireGuardConfig> allDesired) {
+        return CompositeFuture.join(allDesired.stream().map(desired -> {
+            return renderConfig(desired)
+                    .compose(desiredConf -> {
+                        return Future.succeededFuture(new WireGuardSyncConfChange(desired.getInterface(),
+                                desiredConf.toString()));
+                    });
+        }).collect(Collectors.toList()))
+                .compose(compositeFuture -> {
+                    final List<Change> changes = new ArrayList<>(allDesired.size());
+                    for (int i = 0; i < allDesired.size(); i ++) {
+                        final Change change = compositeFuture.resultAt(i);
+                        if(change == null) continue;
+                        changes.add(change);
                     }
-                    return Future.succeededFuture(Collections.singletonList(
-                            new CommandChange(new String[] { "systemctl",
-                                    "enable",
-                                    "--now",
-                                    "-q",
-                                    "wg-quick@" + desiredConfig.getInterface() })
-                    ));
+                    return Future.succeededFuture(changes);
                 });
     }
 
     @Nonnull
     @Override
     public Future<List<Change>> calculateChanges(@Nonnull Node node, @Nonnull List<WireGuardConfig> allDesired) {
-        final List<Future<List<Change>>> addOrModifyChanges =
-                allDesired.stream().map(desired -> calculateSingleConfigChange(node, desired)).collect(Collectors.toList());
-        final List<Future<List<Change>>> serviceChanges =
-                allDesired.stream().map(this::calculateSingleServiceStatusChange).collect(Collectors.toList());
-        final Future<List<Change>> deleteChanges =
-                calculateDeleteChanges(allDesired);
-        final List<Future> futures = new ArrayList<>(addOrModifyChanges.size() + 1);
-        futures.addAll(addOrModifyChanges);
-        futures.addAll(serviceChanges);
-        futures.add(deleteChanges);
-        return CompositeFuture.all(futures)
-                .compose(compositeFuture -> {
-                    final List<Change> changes = new ArrayList<>(futures.size());
-                    for(int i = 0; i < futures.size(); i ++) {
-                        changes.addAll(compositeFuture.resultAt(i));
-                    }
-                    return Future.succeededFuture(changes);
-                });
+        return calculateDeleteChanges(allDesired).compose(changes -> {
+            return calculateTotalNetlinkChanges(node, allDesired)
+                    .compose(netlinkChanges -> {
+                        changes.addAll(netlinkChanges);
+                        return Future.succeededFuture(changes);
+                    });
+        }).compose(changes -> {
+            return calculateTotalWireGuardChanges(node, allDesired)
+                    .compose(wireguardChanges -> {
+                        changes.addAll(wireguardChanges);
+                        return Future.succeededFuture(changes);
+                    });
+        });
     }
 }

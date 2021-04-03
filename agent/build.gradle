@@ -34,6 +34,8 @@ dependencies {
     annotationProcessor "io.vertx:vertx-service-proxy:${project.vertxVersion}"
     compileOnly "io.vertx:vertx-codegen:${project.vertxVersion}"
 
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.2'
+
     implementation project(':rpc-common')
 }
 

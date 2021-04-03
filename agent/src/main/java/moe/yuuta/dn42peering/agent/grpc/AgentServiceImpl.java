@@ -44,7 +44,8 @@ class AgentServiceImpl extends VertxAgentGrpc.AgentVertxImplBase {
                     }
                     return CompositeFuture.all(changes);
                 })
-                .onComplete(res -> logger.info("Deployment finished. Detailed log can be traced above."))
+                .onSuccess(res -> logger.info("Deployment finished. Detailed log can be traced above."))
+                .onFailure(err -> logger.error("Deployment failed. Detailed log can be traced above.", err))
                 .compose(compositeFuture -> Future.succeededFuture(null));
     }
 }
