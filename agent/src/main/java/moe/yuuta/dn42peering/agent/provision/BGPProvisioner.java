@@ -121,25 +121,34 @@ public class BGPProvisioner implements IProvisioner<BGPConfig> {
     @Nonnull
     @Override
     public Future<List<Change>> calculateChanges(@Nonnull Node node, @Nonnull List<BGPConfig> allDesired) {
-        final List<Future<List<Change>>> addOrModifyChanges =
-                allDesired.stream().map(this::calculateSingleChange).collect(Collectors.toList());
+        // All of these calculations can be done in parallel but we must wait all of them to finish.
+        final Future<List<Change>> addOrModifyChanges =
+                CompositeFuture.join(allDesired.stream()
+                        .map(this::calculateSingleChange)
+                        .collect(Collectors.toList()))
+                .compose(compositeFuture -> {
+                    final List<Change> changes = new ArrayList<>();
+                    for(int i = 0; i < compositeFuture.size(); i ++)
+                        changes.addAll(compositeFuture.resultAt(i));
+                    return Future.succeededFuture(changes);
+                });
         final Future<List<Change>> deleteChanges =
                 calculateDeleteChanges(allDesired);
         final Future<List<Change>> reloadChange =
                 Future.succeededFuture(Collections.singletonList(
                         new CommandChange(new String[] { "birdc", "configure" })));
 
-        final List<Future> futures = new ArrayList<>(addOrModifyChanges.size() + 2);
-        futures.addAll(addOrModifyChanges);
-        futures.add(deleteChanges);
-        futures.add(reloadChange);
-        return CompositeFuture.all(futures)
-                .compose(compositeFuture -> {
-                    final List<Change> changes = new ArrayList<>(futures.size());
-                    for(int i = 0; i < futures.size(); i ++) {
-                        changes.addAll(compositeFuture.resultAt(i));
-                    }
-                    return Future.succeededFuture(changes);
-                });
+        // The three major steps above must be done in sequence.
+        return addOrModifyChanges.compose(changes -> {
+            return deleteChanges.compose(deleteChangeList -> {
+                changes.addAll(deleteChangeList);
+                return Future.succeededFuture(changes);
+            });
+        }).compose(changes -> {
+            return reloadChange.compose(reloadChangeList -> {
+                changes.addAll(reloadChangeList);
+                return Future.succeededFuture(changes);
+            });
+        });
     }
 }
