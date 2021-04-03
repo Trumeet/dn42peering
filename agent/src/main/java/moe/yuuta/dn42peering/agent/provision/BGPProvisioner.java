@@ -122,33 +122,31 @@ public class BGPProvisioner implements IProvisioner<BGPConfig> {
     @Override
     public Future<List<Change>> calculateChanges(@Nonnull Node node, @Nonnull List<BGPConfig> allDesired) {
         // All of these calculations can be done in parallel but we must wait all of them to finish.
-        final Future<List<Change>> addOrModifyChanges =
-                CompositeFuture.join(allDesired.stream()
+        // The three major steps above must be done in sequence.
+        // Step 1: Calculate individual BGP changes in parallel and combine them into a single future.
+        return CompositeFuture.join(allDesired.stream()
                         .map(this::calculateSingleChange)
                         .collect(Collectors.toList()))
                 .compose(compositeFuture -> {
                     final List<Change> changes = new ArrayList<>();
-                    for(int i = 0; i < compositeFuture.size(); i ++)
+                    for (int i = 0; i < compositeFuture.size(); i++)
                         changes.addAll(compositeFuture.resultAt(i));
                     return Future.succeededFuture(changes);
+                })
+                // Step 2: Calculate things to delete.
+                .compose(changes -> {
+                    return calculateDeleteChanges(allDesired).compose(deleteChangeList -> {
+                        changes.addAll(deleteChangeList);
+                        return Future.succeededFuture(changes);
+                    });
+                })
+                // Step 3: Reload at last
+                .compose(changes -> {
+                    return Future.succeededFuture(Collections.singletonList(
+                            new CommandChange(new String[]{"birdc", "configure"}))).compose(reloadChangeList -> {
+                        changes.addAll(reloadChangeList);
+                        return Future.succeededFuture(changes);
+                    });
                 });
-        final Future<List<Change>> deleteChanges =
-                calculateDeleteChanges(allDesired);
-        final Future<List<Change>> reloadChange =
-                Future.succeededFuture(Collections.singletonList(
-                        new CommandChange(new String[] { "birdc", "configure" })));
-
-        // The three major steps above must be done in sequence.
-        return addOrModifyChanges.compose(changes -> {
-            return deleteChanges.compose(deleteChangeList -> {
-                changes.addAll(deleteChangeList);
-                return Future.succeededFuture(changes);
-            });
-        }).compose(changes -> {
-            return reloadChange.compose(reloadChangeList -> {
-                changes.addAll(reloadChangeList);
-                return Future.succeededFuture(changes);
-            });
-        });
     }
 }
