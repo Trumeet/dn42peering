@@ -162,4 +162,21 @@ class ASNServiceImpl implements IASNService {
                 .onComplete(handler);
         return this;
     }
+
+    @Nonnull
+    @Override
+    public IASNService list(@Nonnull Handler<AsyncResult<List<ASN>>> handler) {
+        SqlTemplate
+                .forQuery(pool, "SELECT asn, activated " +
+                        "FROM asn")
+                .mapTo(ASNRowMapper.INSTANCE)
+                .execute(null)
+                .compose(asns -> {
+                    final List<ASN> asnList = new ArrayList<>();
+                    for (ASN asn : asns) asnList.add(asn);
+                    return Future.succeededFuture(asnList);
+                })
+                .onComplete(handler);
+        return this;
+    }
 }

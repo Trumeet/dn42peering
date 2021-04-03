@@ -10,6 +10,7 @@
 <p>You are logged in as: ${asn}.</p>
 <p>dn42peering administrative tasks.</p>
 <ul>
+<li><a href="/admin/asn">ASN Management</a></li>
 <li><a href="/admin/sudo">sudo</a></li>
 </ul>
 <h2>Registered ASNs and Peering</h2>

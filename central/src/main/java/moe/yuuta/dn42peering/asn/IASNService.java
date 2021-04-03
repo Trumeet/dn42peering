@@ -53,4 +53,8 @@ public interface IASNService {
     @Fluent
     @Nonnull
     IASNService count(@Nonnull Handler<AsyncResult<Integer>> handler);
+
+    @Fluent
+    @Nonnull
+    IASNService list(@Nonnull Handler<AsyncResult<List<ASN>>> handler);
 }

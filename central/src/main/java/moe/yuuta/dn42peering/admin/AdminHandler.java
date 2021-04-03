@@ -20,6 +20,7 @@ import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.SchemaRouter;
 import io.vertx.json.schema.SchemaRouterOptions;
 import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
+import moe.yuuta.dn42peering.admin.asn.ASNHandler;
 import moe.yuuta.dn42peering.admin.nodes.NodeHandler;
 import moe.yuuta.dn42peering.asn.IASNService;
 import moe.yuuta.dn42peering.manage.AdminASNAuthProvider;
@@ -112,6 +113,7 @@ public class AdminHandler implements ISubRouter {
                 });
 
         router.mountSubRouter("/nodes", new NodeHandler().mount(vertx));
+        router.mountSubRouter("/asn", new ASNHandler().mount(vertx));
         return router;
     }
 }
