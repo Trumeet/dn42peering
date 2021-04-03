@@ -4,6 +4,10 @@ A MySQL database is required for dn42peering central to work. Before installing 
 
 Create a database and user, then grant it with all data and structure privileges. The server will automatically create tables and upgrade schema in the future.
 
+## Host
+
+IPv4 Address, IPv6 Address or domain name is supported. For IPv6 address, quote your address in brackets like `[fd3f:a1f1:54ed:2::41]`.
+
 ## Auto Migration
 
 The server will migrate database schema before starts. All migration SQL files can be found in the resources.
