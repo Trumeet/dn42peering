@@ -1,6 +1,5 @@
 package moe.yuuta.dn42peering.agent.grpc;
 
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.impl.logging.Logger;
@@ -13,7 +12,6 @@ import moe.yuuta.dn42peering.agent.provision.Change;
 import moe.yuuta.dn42peering.agent.provision.WireGuardProvisioner;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.List;
 
 class AgentServiceImpl extends VertxAgentGrpc.AgentVertxImplBase {
@@ -43,16 +41,14 @@ class AgentServiceImpl extends VertxAgentGrpc.AgentVertxImplBase {
         final BGPProvisioner bgpProvisioner = new BGPProvisioner(vertx);
         final WireGuardProvisioner wireGuardProvisioner = new WireGuardProvisioner(vertx);
 
-        final List<Future> execFutures = new ArrayList<>(2);
-        execFutures.add(bgpProvisioner.calculateChanges(config.getNode(), config.getBgpsList())
-                .compose(this::chainChanges));
-        execFutures.add(wireGuardProvisioner.calculateChanges(config.getNode(), config.getWgsList())
-                .compose(this::chainChanges));
-
+        // TODO: Currently all provisioning operations are non-fault-tolering. This means that
+        // TODO: if one operation fails, the following will fail. This may be changed in later.
         // Changes in each provisioners are executed in sequence.
-        // Two provisioners are executed in parallel.
-        // We must wait all calculations done.
-        return CompositeFuture.join(execFutures)
+        // Two provisioners are executed in sequence.
+        return bgpProvisioner.calculateChanges(config.getNode(), config.getBgpsList())
+                .compose(this::chainChanges)
+                .compose(_v -> wireGuardProvisioner.calculateChanges(config.getNode(), config.getWgsList())
+                .compose(this::chainChanges))
                 .onSuccess(res -> logger.info("Deployment finished. Detailed log can be traced above."))
                 .onFailure(err -> logger.error("Deployment failed. Detailed log can be traced above.", err))
                 .compose(compositeFuture -> Future.succeededFuture(null));
