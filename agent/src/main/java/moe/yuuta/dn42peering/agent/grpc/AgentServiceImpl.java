@@ -47,10 +47,10 @@ class AgentServiceImpl extends VertxAgentGrpc.AgentVertxImplBase {
         // TODO: if one operation fails, the following will fail. This may be changed in later.
         // Changes in each provisioners are executed in sequence.
         // Two provisioners are executed in sequence.
-        return bgpProvisioner.calculateChanges(config.getNode(), config.getBgpsList())
-                .compose(this::chainChanges)
-                .compose(_v -> wireGuardProvisioner.calculateChanges(config.getNode(), config.getWgsList())
-                .compose(this::chainChanges))
+        return wireGuardProvisioner.calculateChanges(config.getNode(), config.getWgsList())
+                    .compose(this::chainChanges)
+                .compose(_v -> bgpProvisioner.calculateChanges(config.getNode(), config.getBgpsList())
+                    .compose(this::chainChanges))
                 .compose(_v -> wireGuardCleanupProvisioner.calculateChanges(config.getNode(), config.getWgsList())
                         .compose(this::chainChanges))
                 .onSuccess(res -> logger.info("Deployment finished. Detailed log can be traced above."))
