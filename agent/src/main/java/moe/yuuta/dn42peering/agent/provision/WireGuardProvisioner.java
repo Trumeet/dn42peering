@@ -100,8 +100,8 @@ public class WireGuardProvisioner implements IProvisioner<WireGuardConfig> {
         params.put("dev", config.getInterface());
         params.put("self_ipv4", node.getIpv4());
         params.put("peer_ipv4", config.getPeerIPv4());
-        params.put("peer_ipv6", config.getPeerIPv6());
         if (!config.getPeerIPv6().equals("")) {
+            params.put("peer_ipv6", config.getPeerIPv6());
             try {
                 final boolean ll = Inet6Address.getByName(config.getPeerIPv6()).isLinkLocalAddress();
                 params.put("peer_ipv6_ll", ll);
