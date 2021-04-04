@@ -17,10 +17,12 @@ import moe.yuuta.dn42peering.agent.proto.WireGuardConfig;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.File;
 import java.io.IOException;
 import java.net.Inet6Address;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class WireGuardProvisioner implements IProvisioner<WireGuardConfig> {
@@ -37,22 +39,6 @@ public class WireGuardProvisioner implements IProvisioner<WireGuardConfig> {
                                 @Nonnull Vertx vertx) {
         this.engine = engine;
         this.vertx = vertx;
-    }
-
-    @Nonnull
-    private Future<List<Change>> calculateDeleteChanges(@Nonnull List<WireGuardConfig> allDesired) {
-        final String[] actualNamesRaw = new File("/etc/wireguard/").list((dir, name) -> name.matches("wg_.*\\.conf"));
-        final List<String> actualNames = Arrays.stream(actualNamesRaw == null ? new String[]{} : actualNamesRaw)
-                .sorted()
-                .collect(Collectors.toList());
-        return Future.succeededFuture(actualNames.stream()
-                .flatMap(string -> {
-                    return Arrays.stream(new Change[]{
-                            new CommandChange(new String[]{"systemctl", "disable", "--now", "-q", "wg-quick@" + string.replace(".conf", ".service")}),
-                            new FileChange("/etc/wireguard/" + string, null, FileChange.Action.DELETE.toString())
-                    });
-                })
-                .collect(Collectors.toList()));
     }
 
     @Nonnull
@@ -231,13 +217,8 @@ public class WireGuardProvisioner implements IProvisioner<WireGuardConfig> {
     @Nonnull
     @Override
     public Future<List<Change>> calculateChanges(@Nonnull Node node, @Nonnull List<WireGuardConfig> allDesired) {
-        return calculateDeleteChanges(allDesired).compose(changes -> {
-            return calculateTotalNetlinkChanges(node, allDesired)
-                    .compose(netlinkChanges -> {
-                        changes.addAll(netlinkChanges);
-                        return Future.succeededFuture(changes);
-                    });
-        }).compose(changes -> {
+        return calculateTotalNetlinkChanges(node, allDesired)
+                    .compose(changes -> {
             return calculateTotalWireGuardChanges(node, allDesired)
                     .compose(wireguardChanges -> {
                         changes.addAll(wireguardChanges);

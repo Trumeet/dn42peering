@@ -6,10 +6,7 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import moe.yuuta.dn42peering.agent.proto.DeployResult;
 import moe.yuuta.dn42peering.agent.proto.NodeConfig;
-import moe.yuuta.dn42peering.agent.provision.BGPProvisioner;
-import moe.yuuta.dn42peering.agent.provision.Change;
-import moe.yuuta.dn42peering.agent.provision.WireGuardCleanupProvisioner;
-import moe.yuuta.dn42peering.agent.provision.WireGuardProvisioner;
+import moe.yuuta.dn42peering.agent.provision.*;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -31,6 +28,7 @@ public class Deploy {
     public static Future<DeployResult> deploy(@Nonnull Vertx vertx, @Nonnull NodeConfig config) {
         logger.info("Deployment started");
         final BGPProvisioner bgpProvisioner = new BGPProvisioner(vertx);
+        final WireGuardLegacyCleanupProvisioner wireGuardLegacyCleanupProvisioner = new WireGuardLegacyCleanupProvisioner(vertx);
         final WireGuardProvisioner wireGuardProvisioner = new WireGuardProvisioner(vertx);
         final WireGuardCleanupProvisioner wireGuardCleanupProvisioner = new WireGuardCleanupProvisioner(vertx);
 
@@ -38,8 +36,10 @@ public class Deploy {
         // TODO: if one operation fails, the following will fail. This may be changed in later.
         // Changes in each provisioners are executed in sequence.
         // Two provisioners are executed in sequence.
-        return wireGuardProvisioner.calculateChanges(config.getNode(), config.getWgsList())
-                        .compose(changes -> chainChanges(vertx, changes))
+        return wireGuardLegacyCleanupProvisioner.calculateChanges(config.getNode(), config.getWgsList())
+                    .compose(changes -> chainChanges(vertx, changes))
+                .compose(_v -> wireGuardProvisioner.calculateChanges(config.getNode(), config.getWgsList())
+                        .compose(changes -> chainChanges(vertx, changes)))
                 .compose(_v -> bgpProvisioner.calculateChanges(config.getNode(), config.getBgpsList())
                         .compose(changes -> chainChanges(vertx, changes)))
                 .compose(_v -> wireGuardCleanupProvisioner.calculateChanges(config.getNode(), config.getWgsList())
