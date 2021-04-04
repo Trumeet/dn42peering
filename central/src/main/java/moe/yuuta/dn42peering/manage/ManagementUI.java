@@ -103,6 +103,7 @@ class ManagementUI {
                         root.put("mpbgp", false);
                         root.put("node_checked", ((List<Map<String, Object>>)root.get("nodes")).get(0).get("id"));
                     }
+                    root.put("ipv6_placeholder", "fe80::" + asn.substring(asn.length() - 4));
                     if(!newForm && peer != null)
                         root.put("action", "/manage/edit?id=" + peer.getId());
                     else
@@ -278,6 +279,11 @@ class ManagementUI {
                                 if(!new IPAddressString("fd00::/8").getAddress().contains(address) &&
                                         !address.isLinkLocal()) {
                                     errors.add("IPv6 address is illegal. It must be a dn42 or link-local IPv6 address.");
+                                }
+                                if(node != null &&
+                                        address.isLinkLocal() &&
+                                        ipv6.equalsIgnoreCase(node.getDn42Ip6())) {
+                                    errors.add("Your IPv6 link local address must not be the same with ours. (Pick a different one)");
                                 }
                             } else
                                 errors.add("IPv6 address is illegal. Cannot parse your address.");

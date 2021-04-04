@@ -17,7 +17,7 @@
     <br />
     <label for="ipv6">dn42 or link local IPv6 Address (Optional):</label><br />
     <input type="text" id="ipv6" name="ipv6"
-           placeholder="fe80::2980"
+           placeholder="${ipv6_placeholder}"
            value="${(ipv6)!}"><br />
     <br />
     <input type="checkbox" id="mpbgp" name="mpbgp" value="mpbgp" ${mpbgp?string('checked', '')}>
