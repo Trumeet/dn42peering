@@ -215,10 +215,15 @@ public class NodeHandler implements ISubRouter {
                             })
                             .onFailure(err -> {
                                 if (err instanceof FormException) {
+                                    final Node node = (Node) ((FormException) err).data;
+                                    if(node != null) {
+                                        // The exception may be generated from parseForm.
+                                        node.setId(Integer.parseInt(id)); // It must work.
+                                    }
                                     NodeAdminUI.renderForm(engine, nodeService,
                                             asn,
-                                            true,
-                                            ((Node) ((FormException) err).data),
+                                            false,
+                                            node,
                                             Arrays.asList(((FormException) err).errors),
                                             ctx);
                                 } else {
