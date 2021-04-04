@@ -29,7 +29,7 @@ public class Main {
         final Vertx vertx = Vertx.vertx(new VertxOptions());
         final DeploymentOptions options = new DeploymentOptions()
                 .setConfig(config)
-                .setInstances(Runtime.getRuntime().availableProcessors() * 2);
+                .setInstances(1);
         Logger logger = LoggerFactory.getLogger("Main");
         CompositeFuture.all(Arrays.asList(
                 Future.<String>future(f -> vertx.deployVerticle(RPCVerticle.class.getName(), options, f))
