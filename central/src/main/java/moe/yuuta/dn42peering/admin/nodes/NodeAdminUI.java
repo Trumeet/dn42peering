@@ -1,6 +1,7 @@
 package moe.yuuta.dn42peering.admin.nodes;
 
-import edazdarevic.commons.net.CIDRUtils;
+import inet.ipaddr.IPAddress;
+import inet.ipaddr.IPAddressString;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -10,12 +11,9 @@ import moe.yuuta.dn42peering.node.INodeService;
 import moe.yuuta.dn42peering.node.Node;
 import moe.yuuta.dn42peering.portal.FormException;
 import moe.yuuta.dn42peering.portal.RenderingUtils;
-import org.apache.commons.validator.routines.InetAddressValidator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.net.Inet6Address;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -84,40 +82,45 @@ class NodeAdminUI {
             errors.add("ASN is invalid");
         if(node.getName() == null || node.getName().trim().isEmpty())
             errors.add("No name supplied");
-        try {
-            if(node.getDn42Ip4() != null) {
-                if (InetAddressValidator.getInstance().isValidInet4Address(node.getDn42Ip4())) {
-                    if (!new CIDRUtils("172.20.0.0/14").isInRange(node.getDn42Ip4())) {
-                        errors.add("DN42 IPv4 address is illegal. It must be a dn42 IPv4 address (172.20.x.x to 172.23.x.x).");
-                    }
-                } else
-                    errors.add("DN42 IPv4 address is illegal. Cannot parse your address.");
-            } else {
-                errors.add("DN42 IPv4 address is not supplied");
-            }
-            if(node.getDn42Ip6() != null) {
-                if (InetAddressValidator.getInstance().isValidInet6Address(node.getDn42Ip6())) {
-                    if (new CIDRUtils("fd00::/8").isInRange(node.getDn42Ip6())) {
-                        errors.add("DN42 IPv6 address is illegal. It must be a link-local IPv6 address.");
-                    }
-                } else
-                    errors.add("DN42 Link Local IPv6 address is illegal. Cannot parse your address.");
-            } else {
-                errors.add("DN42 IPv6 Link Local address is not supplied");
-            }
-            if(node.getDn42Ip6NonLL() != null) {
-                if (InetAddressValidator.getInstance().isValidInet6Address(node.getDn42Ip6NonLL())) {
-                    if (!new CIDRUtils("fd00::/8").isInRange(node.getDn42Ip6NonLL()) ||
-                            Inet6Address.getByName(node.getDn42Ip6NonLL()).isLinkLocalAddress()) {
-                        errors.add("DN42 IPv6 address is illegal. It must be a dn42 IPv6 address.");
-                    }
-                } else
-                    errors.add("IPv6 address is illegal. Cannot parse your address.");
-            } else {
-                errors.add("DN42 IPv6 address is not supplied");
-            }
-        } catch (IOException e) {
-            return Future.failedFuture(e);
+        if(node.getDn42Ip4() != null) {
+            final IPAddress address = new IPAddressString(node.getDn42Ip4()).getHostAddress();
+            if (address != null) {
+                if (!new IPAddressString("172.20.0.0/14").getAddress().contains(address)) {
+                    errors.add("DN42 IPv4 address is illegal. It must be a dn42 IPv4 address (172.20.x.x to 172.23.x.x).");
+                }
+                // Remove prefix
+                node.setDn42Ip4(address.toNormalizedString());
+            } else
+                errors.add("DN42 IPv4 address is illegal. Cannot parse your address.");
+        } else {
+            errors.add("DN42 IPv4 address is not supplied");
+        }
+        if(node.getDn42Ip6() != null) {
+            final IPAddress address = new IPAddressString(node.getDn42Ip6()).getHostAddress();
+            if (address != null) {
+                if (!address.isLinkLocal()) {
+                    errors.add("DN42 IPv6 address is illegal. It must be a link-local IPv6 address.");
+                }
+                // Compress & remove prefix
+                node.setDn42Ip6(address.toCanonicalString());
+            } else
+                errors.add("DN42 Link Local IPv6 address is illegal. Cannot parse your address.");
+        } else {
+            errors.add("DN42 IPv6 Link Local address is not supplied");
+        }
+        if(node.getDn42Ip6NonLL() != null) {
+            final IPAddress address = new IPAddressString(node.getDn42Ip6NonLL()).getHostAddress();
+            if (address != null) {
+                if (!new IPAddressString("fd00::/8").getAddress().contains(address) ||
+                        address.isLinkLocal()) {
+                    errors.add("DN42 IPv6 address is illegal. It must be a dn42 IPv6 address.");
+                }
+                // Compress & remove prefix
+                node.setDn42Ip6NonLL(address.toCanonicalString());
+            } else
+                errors.add("IPv6 address is illegal. Cannot parse your address.");
+        } else {
+            errors.add("DN42 IPv6 address is not supplied");
         }
 
         if(node.getInternalIp() == null) {
