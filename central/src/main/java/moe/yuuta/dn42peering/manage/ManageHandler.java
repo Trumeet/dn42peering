@@ -260,7 +260,14 @@ public class ManageHandler implements ISubRouter {
                     ).<Pair<Peer /* Existing */, Peer /* Input */>>compose(peer ->
                             Future.future(f -> peerService.updateTo(peer.b /* New Peer */, ar -> {
                                 if (ar.succeeded()) f.complete(peer);
-                                else f.fail(ar.cause());
+                                else {
+                                    if(((ServiceException)ar.cause()).getDebugInfo().getString("causeName")
+                                            .equals(DuplicatePeerException.class.getName())) {
+                                        f.fail(new FormException(peer.b, "A peer on your chosen node already exists. You can only create one peer per node."));
+                                        return;
+                                    }
+                                    f.fail(ar.cause());
+                                }
                             })))
                             .onSuccess(pair -> {
                                 ctx.response()

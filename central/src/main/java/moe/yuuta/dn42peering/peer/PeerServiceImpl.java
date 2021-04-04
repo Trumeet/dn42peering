@@ -62,25 +62,36 @@ class PeerServiceImpl implements IPeerService {
     @Nonnull
     @Override
     public IPeerService updateTo(@Nonnull Peer peer, @Nonnull Handler<AsyncResult<Void>> handler) {
-        SqlTemplate
-                .forUpdate(pool, "UPDATE peer SET " +
-                        "type = #{type}, " +
-                        "ipv4 = #{ipv4}, " +
-                        "ipv6 = #{ipv6}, " +
-                        "wg_endpoint = #{wg_endpoint}, " +
-                        "wg_endpoint_port = #{wg_endpoint_port}, " +
-                        "wg_self_pubkey = #{wg_self_pubkey}, " +
-                        "wg_self_privkey = #{wg_self_privkey}, " +
-                        "wg_peer_pubkey = #{wg_peer_pubkey}, " +
-                        "wg_preshared_secret = #{wg_preshared_secret}, " +
-                        "provision_status = #{provision_status}, " +
-                        "mpbgp = #{mpbgp}, " +
-                        "node = #{node} " +
-                        "WHERE id = #{id} AND asn = #{asn}")
-                .mapFrom(PeerParametersMapper.INSTANCE)
-                .execute(peer)
-                .<Void>compose(res -> Future.succeededFuture(null))
-                .onComplete(handler);
+        Future.<Void>future(f -> {
+            SqlTemplate
+                    .forUpdate(pool, "UPDATE peer SET " +
+                            "type = #{type}, " +
+                            "ipv4 = #{ipv4}, " +
+                            "ipv6 = #{ipv6}, " +
+                            "wg_endpoint = #{wg_endpoint}, " +
+                            "wg_endpoint_port = #{wg_endpoint_port}, " +
+                            "wg_self_pubkey = #{wg_self_pubkey}, " +
+                            "wg_self_privkey = #{wg_self_privkey}, " +
+                            "wg_peer_pubkey = #{wg_peer_pubkey}, " +
+                            "wg_preshared_secret = #{wg_preshared_secret}, " +
+                            "provision_status = #{provision_status}, " +
+                            "mpbgp = #{mpbgp}, " +
+                            "node = #{node} " +
+                            "WHERE id = #{id} AND asn = #{asn}")
+                    .mapFrom(PeerParametersMapper.INSTANCE)
+                    .execute(peer)
+                    .<Void>compose(res -> Future.succeededFuture(null))
+                    .onFailure(err -> {
+                        if (err instanceof MySQLException) {
+                            if (((MySQLException) err).getErrorCode() == 1062 /* Duplicate */) {
+                                f.fail(new DuplicatePeerException());
+                                return;
+                            }
+                            f.fail(err);
+                        }
+                    })
+                    .onSuccess(f::complete);
+        }).onComplete(handler);
         return this;
     }
 
