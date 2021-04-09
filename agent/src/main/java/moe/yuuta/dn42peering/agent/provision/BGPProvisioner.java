@@ -35,44 +35,28 @@ public class BGPProvisioner implements IProvisioner<BGPConfig> {
     }
 
     @Nonnull
-    private Future<List<Change>> calculateDeleteChanges(@Nonnull List<BGPConfig> allDesired) {
-        final String[] actualNamesRaw = new File("/etc/bird/peers").list((dir, name) -> name.matches("dn42_.*\\.conf"));
-        final List<String> actualNames = Arrays.stream(actualNamesRaw == null ? new String[]{} : actualNamesRaw)
-                .sorted()
-                .collect(Collectors.toList());
-        final String[] desiredNames = allDesired
-                .stream()
-                .map(desired -> generateBGPPath(desired.getId()))
-                .sorted()
-                .collect(Collectors.toList())
-                .toArray(new String[]{});
-        final List<Integer> toRemove = new ArrayList<>(actualNames.size());
-        for (int i = 0; i < desiredNames.length; i ++) {
-            toRemove.clear();
-            for(int j = 0; j < actualNames.size(); j ++) {
-                if(("/etc/bird/peers/" + actualNames.get(j)).equals(desiredNames[i])) {
-                    toRemove.add(j);
-                }
-            }
-            for (int j = 0; j < toRemove.size(); j ++) {
-                actualNames.remove(toRemove.get(j).intValue());
-            }
-        }
-        return Future.succeededFuture(actualNames.stream()
+    private Future<List<Change>> calculateDeleteChanges() {
+        final String[] actualNames = new File("/etc/bird/peers").list((dir, name) -> name.matches("dn42_.*\\.conf"));
+        if(actualNames == null)
+            return Future.succeededFuture(Collections.emptyList());
+        return Future.succeededFuture(Arrays.stream(actualNames)
                 .map(string -> new FileChange("/etc/bird/peers/" + string, null, FileChange.Action.DELETE.toString()))
                 .collect(Collectors.toList()));
     }
 
     @Nonnull
-    private static String generateBGPPath(long id) {
-        return String.format("/etc/bird/peers/dn42_%d.conf", id);
+    private String generateBGPPath() {
+        return vertx
+                .getOrCreateContext()
+                .config()
+                .getString("bird_output_path", "/etc/bird/peers/dn42peers.conf");
     }
 
     @Nonnull
-    private Future<Buffer> readConfig(long id) {
+    private Future<Buffer> readConfig() {
         return Future.future(f -> {
             vertx.fileSystem()
-                    .readFile(generateBGPPath(id))
+                    .readFile(generateBGPPath())
                     .onFailure(err -> {
                         if(err instanceof FileSystemException &&
                         err.getCause() instanceof NoSuchFileException) {
@@ -86,31 +70,37 @@ public class BGPProvisioner implements IProvisioner<BGPConfig> {
     }
 
     @Nonnull
-    private Future<Buffer> renderConfig(@Nonnull BGPConfig config) {
-        final Map<String, Object> params = new HashMap<>(3);
-        params.put("name", config.getId());
-        params.put("asn", config.getAsn());
-        params.put("ipv4", config.getIpv4());
-        params.put("ipv6", config.getIpv6().equals("") ? null : config.getIpv6());
-        params.put("mpbgp", config.getMpbgp());
-        params.put("dev", config.getInterface());
+    private Future<Buffer> renderConfig(@Nonnull List<BGPConfig> configs) {
+        final Map<String, Object> params = new HashMap<>(1);
+        final List<Object> configParams = new ArrayList<>(configs.size());
+        configs.forEach(config -> {
+            final Map<String, Object> param = new HashMap<>(6);
+            param.put("name", config.getId());
+            param.put("asn", config.getAsn());
+            param.put("ipv4", config.getIpv4());
+            param.put("ipv6", config.getIpv6().equals("") ? null : config.getIpv6());
+            param.put("mpbgp", config.getMpbgp());
+            param.put("dev", config.getInterface());
+            configParams.add(param);
+        });
+        params.put("sessions", configParams);
         return engine.render(params, "bird2.conf.ftlh");
     }
 
     @Nonnull
-    private Future<List<Change>> calculateSingleChange(@Nonnull BGPConfig desiredConfig) {
-        return CompositeFuture.all(readConfig(desiredConfig.getId()), renderConfig(desiredConfig))
+    private Future<List<Change>> calculateSingleChange(@Nonnull List<BGPConfig> desiredConfigs) {
+        return CompositeFuture.all(readConfig(), renderConfig(desiredConfigs))
                 .compose(future -> {
                     final Buffer actualBuff = future.resultAt(0);
                     final String actual = actualBuff == null ? null : actualBuff.toString();
                     final String desired = future.resultAt(1).toString();
                     final List<Change> changes = new ArrayList<>(1);
                     if(actual == null) {
-                        changes.add(new FileChange(generateBGPPath(desiredConfig.getId()),
+                        changes.add(new FileChange(generateBGPPath(),
                                 desired,
                                 FileChange.Action.CREATE_AND_WRITE.toString()));
                     } else if(!actual.equals(desired)) {
-                        changes.add(new FileChange(generateBGPPath(desiredConfig.getId()),
+                        changes.add(new FileChange(generateBGPPath(),
                                 desired,
                                 FileChange.Action.OVERWRITE.toString()));
                     }
@@ -124,18 +114,10 @@ public class BGPProvisioner implements IProvisioner<BGPConfig> {
         // All of these calculations can be done in parallel but we must wait all of them to finish.
         // The three major steps above must be done in sequence.
         // Step 1: Calculate individual BGP changes in parallel and combine them into a single future.
-        return CompositeFuture.join(allDesired.stream()
-                        .map(this::calculateSingleChange)
-                        .collect(Collectors.toList()))
-                .compose(compositeFuture -> {
-                    final List<Change> changes = new ArrayList<>();
-                    for (int i = 0; i < compositeFuture.size(); i++)
-                        changes.addAll(compositeFuture.resultAt(i));
-                    return Future.succeededFuture(changes);
-                })
+        return calculateSingleChange(allDesired)
                 // Step 2: Calculate things to delete.
                 .compose(changes -> {
-                    return calculateDeleteChanges(allDesired).compose(deleteChangeList -> {
+                    return calculateDeleteChanges().compose(deleteChangeList -> {
                         changes.addAll(deleteChangeList);
                         return Future.succeededFuture(changes);
                     });

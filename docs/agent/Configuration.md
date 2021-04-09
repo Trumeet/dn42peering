@@ -8,7 +8,8 @@ The configuration format of agent is JSON.
 {
   "internal_ip": "<Your internal controlling IPv4 address without port, see below # Controlling>",
   "persistent": false,
-  "persistent_path": "/var/lib/dn42peering/agent/config"
+  "persistent_path": "/var/lib/dn42peering/agent/config",
+  "bird_output_path": "/etc/bird/peers/dn42peers.conf"
 }
 ```
 
