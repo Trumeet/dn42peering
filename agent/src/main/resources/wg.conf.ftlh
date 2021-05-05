@@ -8,4 +8,4 @@ PresharedKey = ${preshared_key}
 <#if endpoint??>
 Endpoint = ${endpoint}
 </#if>
-AllowedIPs = 0.0.0.0/0, ::/0
+AllowedIPs = 10.127.0.0/16, 172.20.0.0/14, 172.31.0.0/16, fc00::/7, fe80::/64
